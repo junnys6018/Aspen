@@ -8,18 +8,11 @@ import (
 	"testing"
 )
 
-type ExpectToken struct {
-	tokenType TokenType
-	line      int
-	col       int
-	value     interface{}
-}
-
 type testCase struct {
 	fileName    string
 	test        string
 	shouldError bool
-	expect      []ExpectToken
+	expect      []Token
 	errors      []int
 }
 
@@ -216,7 +209,7 @@ func newTestCase(file string) *testCase {
 				value = int64(value.(float64))
 			}
 
-			tc.expect = append(tc.expect, ExpectToken{toTokenType(tokenType), line, col, value})
+			tc.expect = append(tc.expect, Token{toTokenType(tokenType), line, col, value})
 		}
 	}
 	return &tc
