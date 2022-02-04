@@ -1,0 +1,7 @@
+{
+    "test": "(~(~",
+    "expect": {
+        "error": true,
+        "result": [1, 3]
+    }
+}

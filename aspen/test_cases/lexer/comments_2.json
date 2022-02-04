@@ -1,0 +1,17 @@
+{
+    "test": "/\n//blah",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_SLASH",
+                "line": 1,
+                "col": 1
+            },
+            {
+                "type": "TOKEN_EOF",
+                "line": 2,
+                "col": 7
+            }
+        ]
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "test": "//blah\n{//blah",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_LEFT_BRACE",
+                "line": 2,
+                "col": 1
+            },
+            {
+                "type": "TOKEN_EOF",
+                "line": 2,
+                "col": 8
+            }
+        ]
+    }
+}
