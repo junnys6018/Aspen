@@ -1,0 +1,37 @@
+{
+    "test": "== < < = <= > > = >=",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_EQUAL_EQUAL"
+            },
+            {
+                "type": "TOKEN_LESS"
+            },
+            {
+                "type": "TOKEN_LESS"
+            },
+            {
+                "type": "TOKEN_EQUAL"
+            },
+            {
+                "type": "TOKEN_LESS_EQUAL"
+            },
+            {
+                "type": "TOKEN_GREATER"
+            },
+            {
+                "type": "TOKEN_GREATER"
+            },
+            {
+                "type": "TOKEN_EQUAL"
+            },
+            {
+                "type": "TOKEN_GREATER_EQUAL"
+            },
+            {
+                "type": "TOKEN_EOF"
+            }
+        ]
+    }
+}

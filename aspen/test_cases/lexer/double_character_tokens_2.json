@@ -1,0 +1,32 @@
+{
+    "test": "& && || |",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_AMP",
+                "line": 1,
+                "col": 1
+            },
+            {
+                "type": "TOKEN_AMP_AMP",
+                "line": 1,
+                "col": 3
+            },
+            {
+                "type": "TOKEN_PIPE_PIPE",
+                "line": 1,
+                "col": 6
+            },
+            {
+                "type": "TOKEN_PIPE",
+                "line": 1,
+                "col": 9
+            },
+            {
+                "type": "TOKEN_EOF",
+                "line": 1,
+                "col": 10
+            }
+        ]
+    }
+}

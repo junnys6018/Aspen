@@ -123,6 +123,17 @@ func ScanTokens(source []rune) (TokenStream, error) {
 		return false
 	}
 
+	conditionalToken := func(tokens TokenStream, ifNoMatch TokenType, ifMatch TokenType, matcher rune) TokenStream {
+		if match(matcher) {
+			tokens = simpleToken(tokens, ifMatch)
+			col += 2
+		} else {
+			tokens = simpleToken(tokens, ifNoMatch)
+			col++
+		}
+		return tokens
+	}
+
 	for !isAtEnd() {
 		r := advance()
 
@@ -182,7 +193,18 @@ func ScanTokens(source []rune) (TokenStream, error) {
 				tokens = simpleToken(tokens, TOKEN_SLASH)
 				col++
 			}
-
+		case '!':
+			tokens = conditionalToken(tokens, TOKEN_BANG, TOKEN_BANG_EQUAL, '=')
+		case '=':
+			tokens = conditionalToken(tokens, TOKEN_EQUAL, TOKEN_EQUAL_EQUAL, '=')
+		case '>':
+			tokens = conditionalToken(tokens, TOKEN_GREATER, TOKEN_GREATER_EQUAL, '=')
+		case '<':
+			tokens = conditionalToken(tokens, TOKEN_LESS, TOKEN_LESS_EQUAL, '=')
+		case '&':
+			tokens = conditionalToken(tokens, TOKEN_AMP, TOKEN_AMP_AMP, '&')
+		case '|':
+			tokens = conditionalToken(tokens, TOKEN_PIPE, TOKEN_PIPE_PIPE, '|')
 		default:
 			err.errors = append(err.errors, i-1)
 		}
