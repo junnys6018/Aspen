@@ -8,10 +8,6 @@ import (
 	"testing"
 )
 
-func tokensEqual(got, expected Token) bool {
-	return got.tokenType == expected.tokenType && got.line == expected.line && got.col == expected.col
-}
-
 type ExpectToken struct {
 	tokenType TokenType
 	line      int
