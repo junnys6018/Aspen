@@ -1,0 +1,16 @@
+{
+    "test": "123.4",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_FLOAT",
+                "value": 123.4,
+                "col": 1
+            },
+            {
+                "type": "TOKEN_EOF",
+                "col": 6
+            }
+        ]
+    }
+}

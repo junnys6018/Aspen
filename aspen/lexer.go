@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 type TokenType int
@@ -206,7 +208,45 @@ func ScanTokens(source []rune) (TokenStream, error) {
 		case '|':
 			tokens = conditionalToken(tokens, TOKEN_PIPE, TOKEN_PIPE_PIPE, '|')
 		default:
-			err.errors = append(err.errors, i-1)
+			if unicode.IsDigit(r) {
+				oldCol := col
+				col++
+
+				start := i - 1
+				isInteger := true
+
+				for !isAtEnd() && unicode.IsDigit(peek()) {
+					advance()
+					col++
+				}
+
+				if match('.') {
+					col++
+					isInteger = false
+					for !isAtEnd() && unicode.IsDigit(peek()) {
+						advance()
+						col++
+					}
+				}
+
+				end := i
+				if isInteger {
+					value, err := strconv.ParseInt(string(source[start:end]), 10, 64)
+					if err != nil {
+						panic("bug: should never error here")
+					}
+					tokens = append(tokens, Token{TOKEN_INT, line, oldCol, value})
+				} else {
+					value, err := strconv.ParseFloat(string(source[start:end]), 64)
+					if err != nil {
+						panic("bug: should never error here")
+					}
+					tokens = append(tokens, Token{TOKEN_FLOAT, line, oldCol, value})
+				}
+
+			} else {
+				err.errors = append(err.errors, i-1)
+			}
 		}
 	}
 

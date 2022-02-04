@@ -1,0 +1,23 @@
+{
+    "test": "1+1",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_INT",
+                "value": 1,
+                "col": 1
+            },
+            {
+                "type": "TOKEN_PLUS",
+                "col": 2
+            }, {
+                "type": "TOKEN_INT",
+                "value": 1,
+                "col": 3
+            }, {
+                "type": "TOKEN_EOF",
+                "col": 4
+            }
+        ]
+    }
+}

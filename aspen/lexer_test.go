@@ -57,7 +57,7 @@ func (tc *testCase) run(t *testing.T) {
 					if expectToken.tokenType != tokens[i].tokenType ||
 						(expectToken.line != -1 && expectToken.line != tokens[i].line) ||
 						(expectToken.col != -1 && expectToken.col != tokens[i].col) ||
-						(expectToken.value != nil && expectToken.value != tokens[i].value) /* <-- TODO */ {
+						(expectToken.value != nil && expectToken.value != tokens[i].value) {
 						t.Errorf("%s: expected tokens[%d] to be %+v, got %+v", tc.fileName, i, expectToken, tokens[i])
 					}
 				}
@@ -216,6 +216,8 @@ func newTestCase(file string) *testCase {
 			value, ok := m["value"]
 			if !ok {
 				value = nil
+			} else if tokenType == "TOKEN_INT" {
+				value = int64(value.(float64))
 			}
 
 			tc.expect = append(tc.expect, ExpectToken{toTokenType(tokenType), line, col, value})

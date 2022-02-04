@@ -1,0 +1,16 @@
+{
+    "test": "123",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_INT",
+                "value": 123,
+                "col": 1
+            },
+            {
+                "type": "TOKEN_EOF",
+                "col": 4
+            }
+        ]
+    }
+}
