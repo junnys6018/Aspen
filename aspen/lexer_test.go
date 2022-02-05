@@ -16,6 +16,35 @@ type testCase struct {
 	errors      []int
 }
 
+func valuesEqual(a, b interface{}) bool {
+	if a == nil && b == nil {
+		return true
+	}
+
+	// check if a holds a []rune
+	if v1, ok := a.([]rune); ok {
+		// if so, check if b holds a []rune
+		if v2, ok := b.([]rune); ok {
+			// if so, do a deep comparison of the underlying []runes
+			if len(v1) != len(v2) {
+				return false
+			}
+
+			for i, r := range v1 {
+				if r != v2[i] {
+					return false
+				}
+			}
+			return true
+		} else {
+			return false
+		}
+	}
+
+	// if not, compare a and b with normal interface comparison semantics
+	return a == b
+}
+
 func (tc *testCase) run(t *testing.T) {
 	tokens, err := ScanTokens([]rune(tc.test))
 
@@ -46,7 +75,7 @@ func (tc *testCase) run(t *testing.T) {
 					if expectToken.tokenType != tokens[i].tokenType ||
 						(expectToken.line != -1 && expectToken.line != tokens[i].line) ||
 						(expectToken.col != -1 && expectToken.col != tokens[i].col) ||
-						(expectToken.value != nil && expectToken.value != tokens[i].value) {
+						!valuesEqual(expectToken.value, tokens[i].value) {
 						t.Errorf("%s: expected tokens[%d] to be %+v, got %+v", tc.fileName, i, expectToken, tokens[i])
 					}
 				}
@@ -203,10 +232,12 @@ func newTestCase(file string) *testCase {
 			}
 
 			value, ok := m["value"]
-			if !ok {
-				value = nil
-			} else if tokenType == "TOKEN_INT" {
-				value = int64(value.(float64))
+			if ok {
+				if tokenType == "TOKEN_INT" {
+					value = int64(value.(float64))
+				} else if tokenType == "TOKEN_STRING" {
+					value = []rune(value.(string))
+				}
 			}
 
 			tc.expect = append(tc.expect, Token{toTokenType(tokenType), line, col, value})

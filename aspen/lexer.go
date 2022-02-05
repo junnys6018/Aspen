@@ -76,15 +76,21 @@ func (tokens TokenStream) String() string {
 }
 
 type ScanError struct {
-	source []rune
-	errors []int
+	source   []rune
+	errors   []int
+	messages []string
+}
+
+func (e *ScanError) push(offset int, message string) {
+	e.errors = append(e.errors, offset)
+	e.messages = append(e.messages, message)
 }
 
 func (e ScanError) Error() string {
 	builder := strings.Builder{}
 
 	for i, idx := range e.errors {
-		builder.WriteString(ErrorString(e.source, fmt.Sprintf("unexpected token \"%c\".", e.source[idx]), idx))
+		builder.WriteString(ErrorString(e.source, e.messages[i], idx))
 		if i != len(e.errors)-1 {
 			builder.WriteRune('\n')
 		}
@@ -93,18 +99,40 @@ func (e ScanError) Error() string {
 	return builder.String()
 }
 
+func IsLetter(r rune) bool {
+	return r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
+}
+
+var KEYWORDS = map[string]TokenType{
+	"else":   TOKEN_ELSE,
+	"for":    TOKEN_FOR,
+	"fn":     TOKEN_FN,
+	"if":     TOKEN_IF,
+	"nil":    TOKEN_NIL,
+	"print":  TOKEN_PRINT,
+	"return": TOKEN_RETURN,
+	"true":   TOKEN_TRUE,
+	"false":  TOKEN_FALSE,
+	"let":    TOKEN_LET,
+	"while":  TOKEN_WHILE,
+}
+
+// note: this function can be optimised, see: https://craftinginterpreters.com/scanning-on-demand.html#tries-and-state-machines
+func matchKeyword(s string) (keyword TokenType, isKeyword bool) {
+	keyword, ok := KEYWORDS[s]
+	if ok {
+		return keyword, true
+	}
+	return TOKEN_EOF, false
+}
+
 func ScanTokens(source []rune) (TokenStream, error) {
 	line := 1
 	col := 1
 	tokens := make(TokenStream, 0)
 	i := 0
 
-	err := ScanError{source, make([]int, 0)}
-
-	simpleToken := func(tokens TokenStream, tokenType TokenType) TokenStream {
-		tokens = append(tokens, Token{tokenType, line, col, nil})
-		return tokens
-	}
+	err := ScanError{source, make([]int, 0), make([]string, 0)}
 
 	advance := func() rune {
 		i++
@@ -127,15 +155,105 @@ func ScanTokens(source []rune) (TokenStream, error) {
 		return false
 	}
 
-	conditionalToken := func(tokens TokenStream, ifNoMatch TokenType, ifMatch TokenType, matcher rune) TokenStream {
+	simpleToken := func(tokenType TokenType) {
+		tokens = append(tokens, Token{tokenType, line, col, nil})
+	}
+
+	conditionalToken := func(ifNoMatch TokenType, ifMatch TokenType, matcher rune) {
 		if match(matcher) {
-			tokens = simpleToken(tokens, ifMatch)
+			simpleToken(ifMatch)
 			col += 2
 		} else {
-			tokens = simpleToken(tokens, ifNoMatch)
+			simpleToken(ifNoMatch)
 			col++
 		}
-		return tokens
+	}
+
+	stringToken := func() {
+		oldCol := col
+		col++
+
+		start := i
+
+		for !isAtEnd() && peek() != '\n' {
+			advance()
+			col++
+			if peek() == '"' {
+				break
+			}
+		}
+
+		if isAtEnd() || peek() == '\n' {
+			err.push(i-1, "string literal not terminated")
+		}
+
+		end := i
+
+		if !match('"') {
+			panic("bug, this should always match")
+		}
+		col++
+
+		tokens = append(tokens, Token{TOKEN_STRING, line, oldCol, source[start:end]})
+	}
+
+	numberToken := func() {
+		oldCol := col
+		col++
+
+		start := i - 1
+		isInteger := true
+
+		for !isAtEnd() && unicode.IsDigit(peek()) {
+			advance()
+			col++
+		}
+
+		if match('.') {
+			col++
+			isInteger = false
+			for !isAtEnd() && unicode.IsDigit(peek()) {
+				advance()
+				col++
+			}
+		}
+
+		end := i
+		if isInteger {
+			value, err := strconv.ParseInt(string(source[start:end]), 10, 64)
+			if err != nil {
+				panic("bug: should never error here")
+			}
+			tokens = append(tokens, Token{TOKEN_INT, line, oldCol, value})
+		} else {
+			value, err := strconv.ParseFloat(string(source[start:end]), 64)
+			if err != nil {
+				panic("bug: should never error here")
+			}
+			tokens = append(tokens, Token{TOKEN_FLOAT, line, oldCol, value})
+		}
+	}
+
+	identifierToken := func() {
+		oldCol := col
+		col++
+
+		start := i - 1
+
+		for !isAtEnd() && IsLetter(peek()) {
+			advance()
+			col++
+		}
+
+		end := i
+
+		identifier := string(source[start:end])
+
+		if keyword, isKeyword := matchKeyword(identifier); isKeyword {
+			tokens = append(tokens, Token{keyword, line, oldCol, nil})
+		} else {
+			tokens = append(tokens, Token{TOKEN_IDENTIFIER, line, oldCol, identifier})
+		}
 	}
 
 	for !isAtEnd() {
@@ -155,31 +273,31 @@ func ScanTokens(source []rune) (TokenStream, error) {
 
 		switch r {
 		case '(':
-			tokens = simpleToken(tokens, TOKEN_LEFT_PAREN)
+			simpleToken(TOKEN_LEFT_PAREN)
 			col++
 		case ')':
-			tokens = simpleToken(tokens, TOKEN_RIGHT_PAREN)
+			simpleToken(TOKEN_RIGHT_PAREN)
 			col++
 		case '{':
-			tokens = simpleToken(tokens, TOKEN_LEFT_BRACE)
+			simpleToken(TOKEN_LEFT_BRACE)
 			col++
 		case '}':
-			tokens = simpleToken(tokens, TOKEN_RIGHT_BRACE)
+			simpleToken(TOKEN_RIGHT_BRACE)
 			col++
 		case ',':
-			tokens = simpleToken(tokens, TOKEN_COMMA)
+			simpleToken(TOKEN_COMMA)
 			col++
 		case '-':
-			tokens = simpleToken(tokens, TOKEN_MINUS)
+			simpleToken(TOKEN_MINUS)
 			col++
 		case '+':
-			tokens = simpleToken(tokens, TOKEN_PLUS)
+			simpleToken(TOKEN_PLUS)
 			col++
 		case ';':
-			tokens = simpleToken(tokens, TOKEN_SEMICOLON)
+			simpleToken(TOKEN_SEMICOLON)
 			col++
 		case '*':
-			tokens = simpleToken(tokens, TOKEN_STAR)
+			simpleToken(TOKEN_STAR)
 			col++
 		case '/':
 			if match('/') /* comment */ {
@@ -194,65 +312,35 @@ func ScanTokens(source []rune) (TokenStream, error) {
 					}
 				}
 			} else /* token */ {
-				tokens = simpleToken(tokens, TOKEN_SLASH)
+				simpleToken(TOKEN_SLASH)
 				col++
 			}
 		case '!':
-			tokens = conditionalToken(tokens, TOKEN_BANG, TOKEN_BANG_EQUAL, '=')
+			conditionalToken(TOKEN_BANG, TOKEN_BANG_EQUAL, '=')
 		case '=':
-			tokens = conditionalToken(tokens, TOKEN_EQUAL, TOKEN_EQUAL_EQUAL, '=')
+			conditionalToken(TOKEN_EQUAL, TOKEN_EQUAL_EQUAL, '=')
 		case '>':
-			tokens = conditionalToken(tokens, TOKEN_GREATER, TOKEN_GREATER_EQUAL, '=')
+			conditionalToken(TOKEN_GREATER, TOKEN_GREATER_EQUAL, '=')
 		case '<':
-			tokens = conditionalToken(tokens, TOKEN_LESS, TOKEN_LESS_EQUAL, '=')
+			conditionalToken(TOKEN_LESS, TOKEN_LESS_EQUAL, '=')
 		case '&':
-			tokens = conditionalToken(tokens, TOKEN_AMP, TOKEN_AMP_AMP, '&')
+			conditionalToken(TOKEN_AMP, TOKEN_AMP_AMP, '&')
 		case '|':
-			tokens = conditionalToken(tokens, TOKEN_PIPE, TOKEN_PIPE_PIPE, '|')
+			conditionalToken(TOKEN_PIPE, TOKEN_PIPE_PIPE, '|')
+		case '"':
+			stringToken()
 		default:
 			if unicode.IsDigit(r) {
-				oldCol := col
-				col++
-
-				start := i - 1
-				isInteger := true
-
-				for !isAtEnd() && unicode.IsDigit(peek()) {
-					advance()
-					col++
-				}
-
-				if match('.') {
-					col++
-					isInteger = false
-					for !isAtEnd() && unicode.IsDigit(peek()) {
-						advance()
-						col++
-					}
-				}
-
-				end := i
-				if isInteger {
-					value, err := strconv.ParseInt(string(source[start:end]), 10, 64)
-					if err != nil {
-						panic("bug: should never error here")
-					}
-					tokens = append(tokens, Token{TOKEN_INT, line, oldCol, value})
-				} else {
-					value, err := strconv.ParseFloat(string(source[start:end]), 64)
-					if err != nil {
-						panic("bug: should never error here")
-					}
-					tokens = append(tokens, Token{TOKEN_FLOAT, line, oldCol, value})
-				}
-
+				numberToken()
+			} else if IsLetter(r) {
+				identifierToken()
 			} else {
-				err.errors = append(err.errors, i-1)
+				err.push(i-1, fmt.Sprintf("unexpected token \"%c\".", r))
 			}
 		}
 	}
 
-	tokens = simpleToken(tokens, TOKEN_EOF)
+	simpleToken(TOKEN_EOF)
 
 	if len(err.errors) == 0 {
 		return tokens, nil
