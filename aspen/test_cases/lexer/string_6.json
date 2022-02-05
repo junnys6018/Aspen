@@ -1,0 +1,7 @@
+{
+    "test": "\"foobar\nblah\"",
+    "expect": {
+        "error": true,
+        "result": [6, 12]
+    }
+}

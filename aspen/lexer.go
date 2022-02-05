@@ -271,16 +271,14 @@ func ScanTokens(source []rune) (TokenStream, error) {
 
 		start := i
 
-		for !isAtEnd() && peek() != '\n' {
+		for !isAtEnd() && peek() != '\n' && peek() != '"' {
 			advance()
 			col++
-			if peek() == '"' {
-				break
-			}
 		}
 
 		if isAtEnd() || peek() == '\n' {
 			err.push(i-1, "string literal not terminated")
+			return
 		}
 
 		end := i
