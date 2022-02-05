@@ -65,12 +65,108 @@ type Token struct {
 	value     interface{}
 }
 
+func (token Token) String() string {
+	switch token.tokenType {
+	case TOKEN_LEFT_PAREN:
+		return "("
+	case TOKEN_RIGHT_PAREN:
+		return ")"
+	case TOKEN_LEFT_BRACE:
+		return "{"
+	case TOKEN_RIGHT_BRACE:
+		return "}"
+	case TOKEN_COMMA:
+		return ","
+	case TOKEN_MINUS:
+		return "-"
+	case TOKEN_PLUS:
+		return "+"
+	case TOKEN_SEMICOLON:
+		return ";"
+	case TOKEN_SLASH:
+		return "/"
+	case TOKEN_STAR:
+		return "*"
+	case TOKEN_BANG:
+		return "!"
+	case TOKEN_BANG_EQUAL:
+		return "!="
+	case TOKEN_EQUAL:
+		return "="
+	case TOKEN_EQUAL_EQUAL:
+		return "=="
+	case TOKEN_GREATER:
+		return ">"
+	case TOKEN_GREATER_EQUAL:
+		return ">="
+	case TOKEN_LESS:
+		return "<"
+	case TOKEN_LESS_EQUAL:
+		return "<="
+	case TOKEN_AMP:
+		return "&"
+	case TOKEN_AMP_AMP:
+		return "&&"
+	case TOKEN_PIPE:
+		return "|"
+	case TOKEN_PIPE_PIPE:
+		return "||"
+	case TOKEN_IDENTIFIER:
+		return fmt.Sprintf("%v", token.value.(string))
+	case TOKEN_STRING:
+		return fmt.Sprintf("\"%v\"", string(token.value.([]rune)))
+	case TOKEN_FLOAT:
+		return fmt.Sprintf("%.2f", token.value.(float64))
+	case TOKEN_INT:
+		return fmt.Sprintf("%d", token.value.(int64))
+	case TOKEN_ELSE:
+		return "else"
+	case TOKEN_FOR:
+		return "for"
+	case TOKEN_FN:
+		return "fn"
+	case TOKEN_IF:
+		return "if"
+	case TOKEN_NIL:
+		return "nil"
+	case TOKEN_PRINT:
+		return "print"
+	case TOKEN_RETURN:
+		return "return"
+	case TOKEN_TRUE:
+		return "true"
+	case TOKEN_FALSE:
+		return "false"
+	case TOKEN_LET:
+		return "let"
+	case TOKEN_WHILE:
+		return "while"
+	case TOKEN_EOF:
+		return "<eof>"
+	default:
+		panic(fmt.Sprintf("unknown token type %d", token.tokenType))
+	}
+}
+
 type TokenStream []Token
 
 func (tokens TokenStream) String() string {
 	builder := strings.Builder{}
-	for _, token := range tokens {
-		fmt.Fprintf(&builder, "%+v\n", token)
+
+	lastLine := -1
+	for i, token := range tokens {
+		if token.line != lastLine {
+			fmt.Fprintf(&builder, "%4d ", token.line)
+			lastLine = token.line
+		} else {
+			builder.WriteString("   | ")
+		}
+
+		fmt.Fprintf(&builder, "%2d %v", token.col, token)
+
+		if i != len(tokens)-1 {
+			builder.WriteRune('\n')
+		}
 	}
 	return builder.String()
 }

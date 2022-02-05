@@ -23,7 +23,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("%+v\n", tokens)
+		fmt.Printf("%v\n", tokens)
 	} else {
 		fmt.Printf("usage: %v source.aspen\n", os.Args[0])
 	}
