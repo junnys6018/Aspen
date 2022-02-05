@@ -1,0 +1,7 @@
+{
+    "test": ".123",
+    "expect": {
+        "error": true,
+        "result": [0]
+    }
+}

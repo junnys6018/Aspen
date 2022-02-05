@@ -83,9 +83,11 @@ type ScanError struct {
 func (e ScanError) Error() string {
 	builder := strings.Builder{}
 
-	for _, i := range e.errors {
-		builder.WriteString(ErrorString(e.source, fmt.Sprintf("unexpected token \"%c\".", e.source[i]), i))
-		builder.WriteRune('\n')
+	for i, idx := range e.errors {
+		builder.WriteString(ErrorString(e.source, fmt.Sprintf("unexpected token \"%c\".", e.source[idx]), idx))
+		if i != len(e.errors)-1 {
+			builder.WriteRune('\n')
+		}
 	}
 
 	return builder.String()
@@ -254,7 +256,6 @@ func ScanTokens(source []rune) (TokenStream, error) {
 
 	if len(err.errors) == 0 {
 		return tokens, nil
-
 	} else {
 		return nil, err
 	}

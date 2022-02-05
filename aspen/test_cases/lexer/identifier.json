@@ -1,0 +1,29 @@
+{
+    "test": "foo bar true false",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_IDENTIFIER",
+                "value": "foo",
+                "col": 1
+            },
+            {
+                "type": "TOKEN_IDENTIFIER",
+                "value": "bar",
+                "col": 5
+            },
+            {
+                "type": "TOKEN_TRUE",
+                "col": 9
+            },
+            {
+                "type": "TOKEN_FALSE",
+                "col": 14
+            },
+            {
+                "type": "TOKEN_EOF",
+                "col": 19
+            }
+        ]
+    }
+}

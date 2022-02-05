@@ -19,7 +19,7 @@ func main() {
 		tokens, err := ScanTokens([]rune(source))
 
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "%v\n", err)
+			fmt.Fprintf(os.Stderr, "%v", err)
 			os.Exit(1)
 		}
 

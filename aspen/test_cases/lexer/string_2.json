@@ -1,0 +1,16 @@
+{
+    "test": "\"a\tb\"",
+    "expect": {
+        "error": false,
+        "result": [{
+                "type": "TOKEN_STRING",
+                "value": "a\tb",
+                "col": 1
+            },
+            {
+                "type": "TOKEN_EOF",
+                "col": 6
+            }
+        ]
+    }
+}
