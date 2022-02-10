@@ -23,7 +23,14 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("%v\n", tokens)
+		ast, err := Parse(tokens)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("%v\n", ast)
 	} else {
 		fmt.Printf("usage: %v source.aspen\n", os.Args[0])
 	}
