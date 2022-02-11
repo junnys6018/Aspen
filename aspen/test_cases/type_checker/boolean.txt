@@ -1,0 +1,4 @@
+/*
+    4:9 invalid operation: operator && is not defined for string and i64.
+*/
+"string"&&1

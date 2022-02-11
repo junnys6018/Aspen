@@ -1,0 +1,4 @@
+/*
+    4:1 invalid operation: operator ! is not defined for string.
+*/
+!"string"

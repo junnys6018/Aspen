@@ -43,7 +43,7 @@ func (tc *ParserTestCase) run(t *testing.T) {
 	}
 }
 
-func newParserTestCase(file string) *ParserTestCase {
+func NewParserTestCase(file string) *ParserTestCase {
 	data, err := os.ReadFile(file)
 	content := string(data)
 
@@ -75,7 +75,7 @@ func TestParser(t *testing.T) {
 
 	for _, match := range matches {
 		fmt.Printf("%s\n", match)
-		tc := newParserTestCase(match)
+		tc := NewParserTestCase(match)
 		tc.run(t)
 	}
 }
