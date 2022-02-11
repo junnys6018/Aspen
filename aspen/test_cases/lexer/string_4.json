@@ -2,6 +2,10 @@
     "test": "\"foobar",
     "expect": {
         "error": true,
-        "result": [6]
+        "result": [{
+            "line": 1,
+            "col": 8,
+            "message": "string literal not terminated."
+        }]
     }
 }

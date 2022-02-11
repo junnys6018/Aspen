@@ -174,25 +174,31 @@ func (tokens TokenStream) String() string {
 	return builder.String()
 }
 
+type ScanErrorData struct {
+	line    int
+	col     int
+	message string
+}
+
 type ScanError struct {
-	source   []rune
-	lines    []int
-	cols     []int
-	messages []string
+	source []rune
+	data   []ScanErrorData
 }
 
 func (e *ScanError) push(line int, col int, message string) {
-	e.lines = append(e.lines, line)
-	e.cols = append(e.cols, col)
-	e.messages = append(e.messages, message)
+	e.data = append(e.data, ScanErrorData{line, col, message})
+}
+
+func (e ScanError) IsError() bool {
+	return len(e.data) != 0
 }
 
 func (e ScanError) Error() string {
 	builder := strings.Builder{}
 
-	for i, message := range e.messages {
-		builder.WriteString(ErrorString(e.source, message, e.lines[i], e.cols[i]))
-		if i != len(e.messages)-1 {
+	for i, datum := range e.data {
+		builder.WriteString(ErrorString(e.source, datum.message, datum.line, datum.col))
+		if i != len(e.data)-1 {
 			builder.WriteRune('\n')
 		}
 	}
@@ -282,7 +288,7 @@ func ScanTokens(source []rune) (TokenStream, error) {
 		}
 
 		if isAtEnd() || peek() == '\n' {
-			err.push(line, col, "string literal not terminated")
+			err.push(line, col, "string literal not terminated.")
 			return
 		}
 
@@ -438,15 +444,16 @@ func ScanTokens(source []rune) (TokenStream, error) {
 				identifierToken()
 			} else {
 				err.push(line, col, fmt.Sprintf("unexpected token \"%c\".", r))
+				col++
 			}
 		}
 	}
 
 	simpleToken(TOKEN_EOF)
 
-	if len(err.messages) == 0 {
-		return tokens, nil
-	} else {
+	if err.IsError() {
 		return nil, err
+	} else {
+		return tokens, nil
 	}
 }

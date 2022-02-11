@@ -2,6 +2,10 @@
     "test": "\"",
     "expect": {
         "error": true,
-        "result": [0]
+        "result": [{
+            "line": 1,
+            "col": 2,
+            "message": "string literal not terminated."
+        }]
     }
 }
