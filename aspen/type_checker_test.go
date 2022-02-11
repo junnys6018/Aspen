@@ -38,6 +38,23 @@ func (tc *TypeCheckerTestCase) run(t *testing.T) {
 	}
 }
 
+func ScanErrorMessage(line string, lineNumber *int, col *int, message *string) {
+	var end int
+
+	// skip leading space
+	for unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+	// skip line:col part
+	for !unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+
+	fmt.Sscanf(line, "%d:%d", lineNumber, col)
+
+	*message = line[end+1:]
+}
+
 func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
 	data, err := os.ReadFile(file)
 
@@ -66,23 +83,6 @@ func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
 	comment := tokens[0].value.(string)
 	var errors []ErrorData
 
-	scanLine := func(line string, lineNumber *int, col *int, message *string) {
-		var end int
-
-		// skip leading space
-		for unicode.IsSpace(rune(line[end])) {
-			end++
-		}
-		// skip line:col part
-		for !unicode.IsSpace(rune(line[end])) {
-			end++
-		}
-
-		fmt.Sscanf(line, "%d:%d", lineNumber, col)
-
-		*message = line[end+1:]
-	}
-
 	scanner := bufio.NewScanner(strings.NewReader(comment))
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -95,7 +95,7 @@ func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
 			message         string
 		)
 
-		scanLine(line, &lineNumber, &col, &message)
+		ScanErrorMessage(line, &lineNumber, &col, &message)
 
 		errors = append(errors, ErrorData{lineNumber, col, message})
 	}

@@ -1,0 +1,5 @@
+EXPECT FAILURE
+1:2 unexpected token "~".
+1:4 unexpected token "~".
+BEGIN TOKENS
+(~(~

@@ -1,0 +1,5 @@
+EXPECT FAILURE
+2:6 comment not terminated.
+BEGIN TOKENS
+/* line1
+line2

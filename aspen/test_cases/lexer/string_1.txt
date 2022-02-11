@@ -1,0 +1,5 @@
+EXPECT SUCCESS
+1:1 TOKEN_STRING "hello, world"
+1:15 TOKEN_EOF
+BEGIN TOKENS
+"hello, world"

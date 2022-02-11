@@ -1,0 +1,6 @@
+EXPECT SUCCESS
+1:1 TOKEN_COMMENT " line1\nline2 "
+2:9 TOKEN_EOF
+BEGIN TOKENS
+/* line1
+line2 */

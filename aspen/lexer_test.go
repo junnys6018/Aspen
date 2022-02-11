@@ -1,11 +1,15 @@
 package main
 
 import (
-	"encoding/json"
+	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"unicode"
 )
 
 type LexerTestCase struct {
@@ -13,10 +17,10 @@ type LexerTestCase struct {
 	test        string
 	shouldError bool
 	expect      []Token
-	errors      AspenError
+	errors      []ErrorData
 }
 
-func valuesEqual(a, b interface{}) bool {
+func ValuesEqual(a, b interface{}) bool {
 	if a == nil && b == nil {
 		return true
 	}
@@ -60,15 +64,15 @@ func (tc *LexerTestCase) run(t *testing.T) {
 			return
 		}
 
-		errors := err.(*AspenError)
-		if len(errors.data) != len(tc.errors.data) {
-			t.Errorf("%s: expected len(errors) to be %d, got %d", tc.fileName, len(tc.errors.data), len(errors.data))
+		errors := err.(*AspenError).data
+		if len(errors) != len(tc.errors) {
+			t.Errorf("%s: expected len(errors) to be %d, got %d", tc.fileName, len(tc.errors), len(errors))
 			return
 		}
 
-		for i, datum := range tc.errors.data {
-			if datum != errors.data[i] {
-				t.Errorf("%s: expected errors[%d] to be %v, got %v", tc.fileName, i, datum, errors.data[i])
+		for i, err := range errors {
+			if err != tc.errors[i] {
+				t.Errorf("%s: expected errors[%d] to be %v got %v", tc.fileName, i, tc.errors[i], err)
 			}
 		}
 	} else {
@@ -86,7 +90,7 @@ func (tc *LexerTestCase) run(t *testing.T) {
 			if expectToken.tokenType != tokens[i].tokenType ||
 				(expectToken.line != -1 && expectToken.line != tokens[i].line) ||
 				(expectToken.col != -1 && expectToken.col != tokens[i].col) ||
-				!valuesEqual(expectToken.value, tokens[i].value) {
+				!ValuesEqual(expectToken.value, tokens[i].value) {
 				t.Errorf("%s: expected tokens[%d] to be %+v, got %+v", tc.fileName, i, expectToken, tokens[i])
 			}
 		}
@@ -180,7 +184,56 @@ func toTokenType(tokenType string) TokenType {
 	}
 }
 
-func newLexerTestCase(file string) *LexerTestCase {
+func LexerTestGetValue(line string, tokenType string) (interface{}, error) {
+	end := 0
+	// skip line:col part
+	for !unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+	// skip whitespace
+	for unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+	// skip token name part
+	for !unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+	// skip whitespace
+	for unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+
+	valueString := line[end:]
+
+	switch tokenType {
+	case "TOKEN_INT":
+		var i int64
+		fmt.Sscanf(valueString, "%d", &i)
+		return i, nil
+	case "TOKEN_STRING":
+		unescaped, err := UnescapeString(valueString)
+		if err != nil {
+			return nil, err
+		}
+		return []rune(unescaped), nil
+	case "TOKEN_FLOAT":
+		var f float64
+		fmt.Sscanf(valueString, "%f", &f)
+		return f, nil
+	case "TOKEN_COMMENT":
+		unescaped, err := UnescapeString(valueString)
+		if err != nil {
+			return nil, err
+		}
+		return unescaped, nil
+	case "TOKEN_IDENTIFIER":
+		return valueString, nil
+	default:
+		return nil, errors.New("unknown token")
+	}
+}
+
+func NewLexerTestCase(file string, t *testing.T) *LexerTestCase {
 	data, err := os.ReadFile(file)
 
 	if err != nil {
@@ -188,80 +241,88 @@ func newLexerTestCase(file string) *LexerTestCase {
 		return nil
 	}
 
-	var decoded struct {
-		Test   string
-		Expect struct {
-			Error  bool
-			Result []interface{}
-		}
-	}
-
-	err = json.Unmarshal(data, &decoded)
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to unmarshall %s\n", file)
-		return nil
-	}
-
 	var tc LexerTestCase
-
 	tc.fileName = file
-	tc.test = decoded.Test
-	tc.shouldError = decoded.Expect.Error
 
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+
+	scanner.Scan()
+	line := scanner.Text()
+
+	// scan status
+	var status string
+	fmt.Sscanf(line, "EXPECT %s", &status)
+	if status != "FAILURE" && status != "SUCCESS" {
+		t.Errorf("failed to parse %s", file)
+	}
+
+	tc.shouldError = status == "FAILURE"
+
+	// scan expect block
 	if tc.shouldError {
-		for _, err := range decoded.Expect.Result {
-			m := err.(map[string]interface{})
+		for scanner.Scan() {
+			line := scanner.Text()
 
-			tc.errors.data = append(tc.errors.data, ErrorData{int(m["line"].(float64)), int(m["col"].(float64)), m["message"].(string)})
+			if line == "BEGIN TOKENS" {
+				break
+			}
+
+			var (
+				lineNumber int
+				col        int
+				message    string
+			)
+
+			ScanErrorMessage(line, &lineNumber, &col, &message)
+
+			tc.errors = append(tc.errors, ErrorData{lineNumber, col, message})
 		}
 	} else {
-		for _, token := range decoded.Expect.Result {
-			m := token.(map[string]interface{})
+		for scanner.Scan() {
+			line := scanner.Text()
 
-			tokenTypeI, ok := m["type"]
-			if !ok {
-				fmt.Fprintf(os.Stderr, "%s: bad json\n", file)
-				return nil
+			if line == "BEGIN TOKENS" {
+				break
 			}
 
-			tokenType := tokenTypeI.(string)
+			var (
+				lineNumber int
+				col        int
+				tokenType  string
+			)
+			fmt.Sscanf(line, "%d:%d %s", &lineNumber, &col, &tokenType)
 
-			lineI, ok := m["line"]
+			var value interface{}
+			hasValue := tokenType == "TOKEN_INT" || tokenType == "TOKEN_STRING" || tokenType == "TOKEN_FLOAT" || tokenType == "TOKEN_COMMENT" || tokenType == "TOKEN_IDENTIFIER"
 
-			var line int
-			if ok {
-				line = int(lineI.(float64))
-			} else {
-				line = -1
-			}
-
-			colI, ok := m["col"]
-
-			var col int
-			if ok {
-				col = int(colI.(float64))
-			} else {
-				col = -1
-			}
-
-			value, ok := m["value"]
-			if ok {
-				if tokenType == "TOKEN_INT" {
-					value = int64(value.(float64))
-				} else if tokenType == "TOKEN_STRING" {
-					value = []rune(value.(string))
+			if hasValue {
+				value, err = LexerTestGetValue(line, tokenType)
+				if err != nil {
+					t.Errorf("failed to parse %s: %v", file, err)
+					return nil
 				}
 			}
 
-			tc.expect = append(tc.expect, Token{toTokenType(tokenType), line, col, value})
+			tc.expect = append(tc.expect, Token{tokenType: toTokenType(tokenType), line: lineNumber, col: col, value: value})
 		}
 	}
+
+	// scan tokens block
+	source := string(data)
+
+	idx := strings.Index(source, "BEGIN TOKENS")
+	if idx >= 0 {
+		tc.test = source[idx+len("BEGIN TOKENS")+1:]
+	} else {
+		t.Errorf("failed to parse %s", file)
+		return nil
+	}
+
 	return &tc
 }
 
 func TestLexer(t *testing.T) {
-	matches, err := filepath.Glob("test_cases/lexer/*.json")
+	matches, err := filepath.Glob("test_cases/lexer/*.txt")
 
 	if err != nil {
 		t.Error("could not glob files")
@@ -269,7 +330,7 @@ func TestLexer(t *testing.T) {
 
 	for _, match := range matches {
 		fmt.Printf("%s\n", match)
-		tc := newLexerTestCase(match)
+		tc := NewLexerTestCase(match, t)
 		tc.run(t)
 	}
 }

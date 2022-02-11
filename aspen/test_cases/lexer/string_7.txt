@@ -1,0 +1,4 @@
+EXPECT FAILURE
+1:2 string literal not terminated.
+BEGIN TOKENS
+"

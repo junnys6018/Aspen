@@ -1,0 +1,6 @@
+EXPECT FAILURE
+1:8 string literal not terminated.
+2:6 string literal not terminated.
+BEGIN TOKENS
+"foobar
+blah"
