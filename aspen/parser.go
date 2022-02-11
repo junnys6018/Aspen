@@ -5,6 +5,8 @@ type Parser struct {
 	current int
 }
 
+// Grammar
+
 func (p *Parser) expression() Expression {
 	return p.logicOr()
 }
@@ -34,9 +36,81 @@ func (p *Parser) logicAnd() Expression {
 }
 
 func (p *Parser) equality() Expression {
-	expr := p.unary()
+	expr := p.comparison()
 
 	for p.match(TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL) {
+		operator := p.previous()
+		right := p.comparison()
+		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
+	}
+
+	return expr
+}
+
+func (p *Parser) comparison() Expression {
+	expr := p.bitOr()
+
+	for p.match(TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL) {
+		operator := p.previous()
+		right := p.bitOr()
+		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
+	}
+
+	return expr
+}
+
+func (p *Parser) bitOr() Expression {
+	expr := p.bitXor()
+
+	for p.match(TOKEN_PIPE) {
+		operator := p.previous()
+		right := p.bitXor()
+		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
+	}
+
+	return expr
+}
+
+func (p *Parser) bitXor() Expression {
+	expr := p.bitAnd()
+
+	for p.match(TOKEN_CARET) {
+		operator := p.previous()
+		right := p.bitAnd()
+		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
+	}
+
+	return expr
+}
+
+func (p *Parser) bitAnd() Expression {
+	expr := p.term()
+
+	for p.match(TOKEN_AMP) {
+		operator := p.previous()
+		right := p.term()
+		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
+	}
+
+	return expr
+}
+
+func (p *Parser) term() Expression {
+	expr := p.factor()
+
+	for p.match(TOKEN_MINUS, TOKEN_PLUS) {
+		operator := p.previous()
+		right := p.factor()
+		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
+	}
+
+	return expr
+}
+
+func (p *Parser) factor() Expression {
+	expr := p.unary()
+
+	for p.match(TOKEN_SLASH, TOKEN_STAR) {
 		operator := p.previous()
 		right := p.unary()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
@@ -68,6 +142,8 @@ func (p *Parser) primary() Expression {
 
 	return nil
 }
+
+// Helpers
 
 func (p *Parser) consume(tokenType TokenType) *Token {
 	if p.check(tokenType) {

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-type testCase struct {
+type LexerTestCase struct {
 	fileName    string
 	test        string
 	shouldError bool
@@ -45,40 +45,47 @@ func valuesEqual(a, b interface{}) bool {
 	return a == b
 }
 
-func (tc *testCase) run(t *testing.T) {
+func (tc *LexerTestCase) run(t *testing.T) {
+	if tc == nil {
+		return
+	}
+
 	tokens, err := ScanTokens([]rune(tc.test))
 
 	if tc.shouldError {
 		if err == nil {
 			t.Errorf("%s: expected err to be non-nil", tc.fileName)
-		} else {
-			errors := err.(ScanError)
-			if len(errors.errors) != len(tc.errors) {
-				t.Errorf("%s: expected len(errors) to be %d, got %d", tc.fileName, len(tc.errors), len(errors.errors))
-			} else {
-				for i, offset := range tc.errors {
-					if offset != errors.errors[i] {
-						t.Errorf("%s: expected errors[%d] to be %d, got %d", tc.fileName, i, offset, errors.errors[i])
-					}
+			return
+		}
 
-				}
+		errors := err.(ScanError)
+		if len(errors.errors) != len(tc.errors) {
+			t.Errorf("%s: expected len(errors) to be %d, got %d", tc.fileName, len(tc.errors), len(errors.errors))
+			return
+		}
+
+		for i, offset := range tc.errors {
+			if offset != errors.errors[i] {
+				t.Errorf("%s: expected errors[%d] to be %d, got %d", tc.fileName, i, offset, errors.errors[i])
 			}
 		}
 	} else {
 		if err != nil {
 			t.Errorf("%s: expected err to be nil", tc.fileName)
-		} else {
-			if len(tokens) != len(tc.expect) {
-				t.Errorf("%s: expected len(tokens) to be %d, got %d", tc.fileName, len(tc.expect), len(tokens))
-			} else {
-				for i, expectToken := range tc.expect {
-					if expectToken.tokenType != tokens[i].tokenType ||
-						(expectToken.line != -1 && expectToken.line != tokens[i].line) ||
-						(expectToken.col != -1 && expectToken.col != tokens[i].col) ||
-						!valuesEqual(expectToken.value, tokens[i].value) {
-						t.Errorf("%s: expected tokens[%d] to be %+v, got %+v", tc.fileName, i, expectToken, tokens[i])
-					}
-				}
+			return
+		}
+
+		if len(tokens) != len(tc.expect) {
+			t.Errorf("%s: expected len(tokens) to be %d, got %d", tc.fileName, len(tc.expect), len(tokens))
+			return
+		}
+
+		for i, expectToken := range tc.expect {
+			if expectToken.tokenType != tokens[i].tokenType ||
+				(expectToken.line != -1 && expectToken.line != tokens[i].line) ||
+				(expectToken.col != -1 && expectToken.col != tokens[i].col) ||
+				!valuesEqual(expectToken.value, tokens[i].value) {
+				t.Errorf("%s: expected tokens[%d] to be %+v, got %+v", tc.fileName, i, expectToken, tokens[i])
 			}
 		}
 	}
@@ -106,6 +113,8 @@ func toTokenType(tokenType string) TokenType {
 		return TOKEN_SLASH
 	case "TOKEN_STAR":
 		return TOKEN_STAR
+	case "TOKEN_CARET":
+		return TOKEN_CARET
 	case "TOKEN_BANG":
 		return TOKEN_BANG
 	case "TOKEN_BANG_EQUAL":
@@ -167,7 +176,7 @@ func toTokenType(tokenType string) TokenType {
 	}
 }
 
-func newTestCase(file string) *testCase {
+func newLexerTestCase(file string) *LexerTestCase {
 	data, err := os.ReadFile(file)
 
 	if err != nil {
@@ -190,7 +199,7 @@ func newTestCase(file string) *testCase {
 		return nil
 	}
 
-	var tc testCase
+	var tc LexerTestCase
 
 	tc.fileName = file
 	tc.test = decoded.Test
@@ -255,7 +264,7 @@ func TestLexer(t *testing.T) {
 
 	for _, match := range matches {
 		fmt.Printf("%s\n", match)
-		tc := newTestCase(match)
+		tc := newLexerTestCase(match)
 		tc.run(t)
 	}
 }

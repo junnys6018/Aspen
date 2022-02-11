@@ -21,6 +21,7 @@ const (
 	TOKEN_SEMICOLON
 	TOKEN_SLASH
 	TOKEN_STAR
+	TOKEN_CARET
 
 	// one or two character tokens
 	TOKEN_BANG
@@ -87,6 +88,8 @@ func (token Token) String() string {
 		return "/"
 	case TOKEN_STAR:
 		return "*"
+	case TOKEN_CARET:
+		return "^"
 	case TOKEN_BANG:
 		return "!"
 	case TOKEN_BANG_EQUAL:
@@ -392,6 +395,9 @@ func ScanTokens(source []rune) (TokenStream, error) {
 			col++
 		case '*':
 			simpleToken(TOKEN_STAR)
+			col++
+		case '^':
+			simpleToken(TOKEN_CARET)
 			col++
 		case '/':
 			if match('/') /* comment */ {

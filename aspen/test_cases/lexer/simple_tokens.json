@@ -1,5 +1,5 @@
 {
-    "test": "{}(),-+;/*",
+    "test": "{}(),-+;/*^",
     "expect": {
         "error": false,
         "result": [{
@@ -53,9 +53,14 @@
                 "col": 10
             },
             {
-                "type": "TOKEN_EOF",
+                "type": "TOKEN_CARET",
                 "line": 1,
                 "col": 11
+            },
+            {
+                "type": "TOKEN_EOF",
+                "line": 1,
+                "col": 12
             }
         ]
     }
