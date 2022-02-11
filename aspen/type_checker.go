@@ -98,9 +98,13 @@ func TypeCheck(ast Expression, errorReporter ErrorReporter) (err error) {
 		if r := recover(); r != nil {
 			switch v := r.(type) {
 			case ErrorData:
+				// recover from any calls to panic with an argument of type `ErrorData` and push the error to the reporter
 				errorReporter.Push(v.line, v.col, v.message)
+
+				// override the returned error
 				err = errorReporter
-			case string:
+			default:
+				// else re-panic
 				panic(v)
 			}
 		}

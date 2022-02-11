@@ -68,7 +68,7 @@ func (t *FunctionType) Arity() int {
 
 type Type struct {
 	kind  TypeEnum
-	other interface{}
+	other interface{} // is either nil, or contains an `ArrayType`, `SliceType` or `FunctionType`
 }
 
 func (t Type) String() string {
@@ -78,6 +78,10 @@ func (t Type) String() string {
 	case TYPE_ARRAY:
 		other := t.other.(ArrayType)
 		if other.of.kind == TYPE_FUNCTION {
+			/**
+			 * if the `of` is a function, wrap the type in parentheses to resolve ambiguity
+			 * e.g. `fn()int[]` is a function that returns an `int[]` while `(fn()int)[]` is a slice of functions
+			 */
 			return fmt.Sprintf("(%v)[%d]", other.of, other.count)
 		} else {
 			return fmt.Sprintf("%v[%d]", other.of, other.count)

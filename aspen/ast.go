@@ -21,7 +21,7 @@ func (expr *BinaryExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *BinaryExpression) String() string {
 	printer := AstPrinter{}
-	printer.visit(expr)
+	printer.Visit(expr)
 	return printer.builder.String()
 }
 
@@ -35,7 +35,7 @@ func (expr *UnaryExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *UnaryExpression) String() string {
 	printer := AstPrinter{}
-	printer.visit(expr)
+	printer.Visit(expr)
 	return printer.builder.String()
 }
 
@@ -48,7 +48,7 @@ func (expr *LiteralExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *LiteralExpression) String() string {
 	printer := AstPrinter{}
-	printer.visit(expr)
+	printer.Visit(expr)
 	return printer.builder.String()
 }
 
@@ -61,6 +61,6 @@ func (expr *GroupingExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *GroupingExpression) String() string {
 	printer := AstPrinter{}
-	printer.visit(expr)
+	printer.Visit(expr)
 	return printer.builder.String()
 }

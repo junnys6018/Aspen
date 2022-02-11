@@ -137,7 +137,7 @@ func main() {
 
 	a.defineMethod("String", Fields{}, "string", func(w io.Writer, nodeName string) {
 		io.WriteString(w, "printer := AstPrinter{}\n")
-		io.WriteString(w, "printer.visit(expr)\n")
+		io.WriteString(w, "printer.Visit(expr)\n")
 		io.WriteString(w, "return printer.builder.String()\n")
 	})
 

@@ -6,7 +6,7 @@ type AstPrinter struct {
 	builder strings.Builder
 }
 
-func (p *AstPrinter) visit(expr Expression) {
+func (p *AstPrinter) Visit(expr Expression) {
 	expr.Accept(p)
 }
 
@@ -17,7 +17,7 @@ func (p *AstPrinter) parenthesize(name string, exprs ...Expression) {
 
 	for _, expr := range exprs {
 		p.builder.WriteRune(' ')
-		p.visit(expr)
+		p.Visit(expr)
 	}
 
 	p.builder.WriteRune(')')
