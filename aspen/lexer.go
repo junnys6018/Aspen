@@ -174,38 +174,6 @@ func (tokens TokenStream) String() string {
 	return builder.String()
 }
 
-type ScanErrorData struct {
-	line    int
-	col     int
-	message string
-}
-
-type ScanError struct {
-	source []rune
-	data   []ScanErrorData
-}
-
-func (e *ScanError) push(line int, col int, message string) {
-	e.data = append(e.data, ScanErrorData{line, col, message})
-}
-
-func (e ScanError) IsError() bool {
-	return len(e.data) != 0
-}
-
-func (e ScanError) Error() string {
-	builder := strings.Builder{}
-
-	for i, datum := range e.data {
-		builder.WriteString(ErrorString(e.source, datum.message, datum.line, datum.col))
-		if i != len(e.data)-1 {
-			builder.WriteRune('\n')
-		}
-	}
-
-	return builder.String()
-}
-
 func IsLetter(r rune) bool {
 	return r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
 }
@@ -233,13 +201,11 @@ func matchKeyword(s string) (keyword TokenType, isKeyword bool) {
 	return TOKEN_EOF, false
 }
 
-func ScanTokens(source []rune) (TokenStream, error) {
+func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error) {
 	line := 1
 	col := 1
 	tokens := make(TokenStream, 0)
 	i := 0
-
-	err := ScanError{source: source}
 
 	advance := func() rune {
 		i++
@@ -288,7 +254,7 @@ func ScanTokens(source []rune) (TokenStream, error) {
 		}
 
 		if isAtEnd() || peek() == '\n' {
-			err.push(line, col, "string literal not terminated.")
+			errorReporter.Push(line, col, "string literal not terminated.")
 			return
 		}
 
@@ -443,7 +409,7 @@ func ScanTokens(source []rune) (TokenStream, error) {
 			} else if IsLetter(r) {
 				identifierToken()
 			} else {
-				err.push(line, col, fmt.Sprintf("unexpected token \"%c\".", r))
+				errorReporter.Push(line, col, fmt.Sprintf("unexpected token \"%c\".", r))
 				col++
 			}
 		}
@@ -451,8 +417,8 @@ func ScanTokens(source []rune) (TokenStream, error) {
 
 	simpleToken(TOKEN_EOF)
 
-	if err.IsError() {
-		return nil, err
+	if errorReporter.HadError() {
+		return tokens, errorReporter
 	} else {
 		return tokens, nil
 	}

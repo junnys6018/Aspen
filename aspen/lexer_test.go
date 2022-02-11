@@ -13,7 +13,7 @@ type LexerTestCase struct {
 	test        string
 	shouldError bool
 	expect      []Token
-	errors      ScanError
+	errors      AspenError
 }
 
 func valuesEqual(a, b interface{}) bool {
@@ -50,7 +50,9 @@ func (tc *LexerTestCase) run(t *testing.T) {
 		return
 	}
 
-	tokens, err := ScanTokens([]rune(tc.test))
+	source := []rune(tc.test)
+	errorReporter := AspenError{source: source}
+	tokens, err := ScanTokens(source, &errorReporter)
 
 	if tc.shouldError {
 		if err == nil {
@@ -58,7 +60,7 @@ func (tc *LexerTestCase) run(t *testing.T) {
 			return
 		}
 
-		errors := err.(ScanError)
+		errors := err.(*AspenError)
 		if len(errors.data) != len(tc.errors.data) {
 			t.Errorf("%s: expected len(errors) to be %d, got %d", tc.fileName, len(tc.errors.data), len(errors.data))
 			return
@@ -209,7 +211,7 @@ func newLexerTestCase(file string) *LexerTestCase {
 		for _, err := range decoded.Expect.Result {
 			m := err.(map[string]interface{})
 
-			tc.errors.data = append(tc.errors.data, ScanErrorData{int(m["line"].(float64)), int(m["col"].(float64)), m["message"].(string)})
+			tc.errors.data = append(tc.errors.data, ErrorData{int(m["line"].(float64)), int(m["col"].(float64)), m["message"].(string)})
 		}
 	} else {
 		for _, token := range decoded.Expect.Result {

@@ -18,7 +18,9 @@ func (tc *ParserTestCase) run(t *testing.T) {
 		return
 	}
 
-	tokens, err := ScanTokens([]rune(tc.source))
+	source := []rune(tc.source)
+	errorReporter := AspenError{source: source}
+	tokens, err := ScanTokens(source, &errorReporter)
 
 	if err != nil {
 		t.Errorf("%s: failed to scan tokens\n %v", tc.fileName, err)

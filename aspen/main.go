@@ -14,9 +14,10 @@ func main() {
 			os.Exit(1)
 		}
 
-		source := string(bytes)
+		source := []rune(string(bytes))
 
-		tokens, err := ScanTokens([]rune(source))
+		errorReporter := AspenError{source: source}
+		tokens, err := ScanTokens(source, &errorReporter)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)
