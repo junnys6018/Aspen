@@ -1,0 +1,11 @@
+{
+    "test": "/* line1\nline2 */",
+    "expect": {
+        "error": false,
+        "result": [{
+            "type": "TOKEN_EOF",
+            "line": 2,
+            "col": 9
+        }]
+    }
+}

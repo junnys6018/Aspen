@@ -1,0 +1,11 @@
+{
+    "test": "/* some comment `2*3=6` */",
+    "expect": {
+        "error": false,
+        "result": [{
+            "type": "TOKEN_EOF",
+            "line": 1,
+            "col": 27
+        }]
+    }
+}

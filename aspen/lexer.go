@@ -385,6 +385,32 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 						break
 					}
 				}
+			} else if match('*') /* multiline comment */ {
+				col += 2
+				terminated := false
+
+				for !isAtEnd() {
+					next := advance()
+					col++
+					if next == '*' {
+						if !isAtEnd() {
+							next = advance()
+							col++
+							if next == '/' {
+								terminated = true
+								break
+							}
+						}
+					} else if next == '\n' {
+						line++
+						col = 1
+					}
+				}
+
+				if !terminated {
+					errorReporter.Push(line, col, "comment not terminated.")
+				}
+
 			} else /* token */ {
 				simpleToken(TOKEN_SLASH)
 				col++

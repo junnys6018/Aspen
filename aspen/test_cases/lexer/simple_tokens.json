@@ -1,5 +1,5 @@
 {
-    "test": "{}(),-+;/*^",
+    "test": "{}(),-+;*/^",
     "expect": {
         "error": false,
         "result": [{
@@ -43,12 +43,12 @@
                 "col": 8
             },
             {
-                "type": "TOKEN_SLASH",
+                "type": "TOKEN_STAR",
                 "line": 1,
                 "col": 9
             },
             {
-                "type": "TOKEN_STAR",
+                "type": "TOKEN_SLASH",
                 "line": 1,
                 "col": 10
             },
