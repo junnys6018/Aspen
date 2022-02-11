@@ -5,48 +5,39 @@ import (
 	"strings"
 )
 
-func GetLocation(source []rune, offset int) (line int, col int) {
-	line = 1
-	col = 1
+func GetLine(source []rune, line int) string {
+	currLine := 0
+	start := -1
+	end := -1
 
-	for _, r := range source[:offset] {
+	for i, r := range source {
 		if r == '\n' {
-			line++
-			col = 1
-		} else {
-			col++
+			currLine++
+			start = end
+			end = i
+			if currLine == line {
+				break
+			}
 		}
 	}
 
-	return
-}
-
-func GetLine(source []rune, offset int) string {
-	start := offset - 1
-	end := offset + 1
-
-	for start >= 0 && source[start] != '\n' {
-		start--
-	}
-
-	for end < len(source) && source[end] != '\n' {
-		end++
+	if currLine < line {
+		start = end
+		end = len(source)
 	}
 
 	return string(source[start+1 : end])
 }
 
-func ErrorString(source []rune, message string, location int) string {
+func ErrorString(source []rune, message string, line int, col int) string {
 	builder := strings.Builder{}
 	fmt.Fprintf(&builder, "error: %s\n\n", message)
 
-	lineNumber, col := GetLocation(source, location)
+	lineNumberString := fmt.Sprintf("%d", line)
 
-	lineNumberString := fmt.Sprintf("%d", lineNumber)
+	sourceCodeLine := GetLine(source, line)
 
-	line := GetLine(source, location)
-
-	fmt.Fprintf(&builder, "    %s | %s\n", lineNumberString, line)
+	fmt.Fprintf(&builder, "    %s | %s\n", lineNumberString, sourceCodeLine)
 
 	for i := 0; i < col+len(lineNumberString)+6; i++ {
 		builder.WriteRune(' ')
