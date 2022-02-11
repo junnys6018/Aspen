@@ -49,17 +49,17 @@ func (t TypeEnum) String() string {
 }
 
 type ArrayType struct {
-	count    int
-	category TypeEnum
+	count int
+	of    Type
 }
 
 type SliceType struct {
-	category TypeEnum
+	of Type
 }
 
 type FunctionType struct {
-	parameters []TypeEnum
-	returnType TypeEnum
+	parameters []Type
+	returnType Type
 }
 
 func (t *FunctionType) Arity() int {
@@ -67,20 +67,28 @@ func (t *FunctionType) Arity() int {
 }
 
 type Type struct {
-	category TypeEnum
-	other    interface{}
+	kind  TypeEnum
+	other interface{}
 }
 
 func (t Type) String() string {
-	switch t.category {
+	switch t.kind {
 	case TYPE_I64, TYPE_U64, TYPE_BOOL, TYPE_STRING, TYPE_DOUBLE, TYPE_NIL:
-		return t.category.String()
+		return t.kind.String()
 	case TYPE_ARRAY:
 		other := t.other.(ArrayType)
-		return fmt.Sprintf("%v[%d]", other.category, other.count)
+		if other.of.kind == TYPE_FUNCTION {
+			return fmt.Sprintf("(%v)[%d]", other.of, other.count)
+		} else {
+			return fmt.Sprintf("%v[%d]", other.of, other.count)
+		}
 	case TYPE_SLICE:
 		other := t.other.(SliceType)
-		return fmt.Sprintf("%v[]", other.category)
+		if other.of.kind == TYPE_FUNCTION {
+			return fmt.Sprintf("(%v)[]", other.of)
+		} else {
+			return fmt.Sprintf("%v[]", other.of)
+		}
 	case TYPE_FUNCTION:
 		other := t.other.(FunctionType)
 		builder := strings.Builder{}
@@ -92,7 +100,11 @@ func (t Type) String() string {
 				builder.WriteString(", ")
 			}
 		}
-		fmt.Fprintf(&builder, ")%v", other.returnType)
+		if other.returnType.kind == TYPE_NIL {
+			fmt.Fprintf(&builder, ")") // function returns nothing, omit return type
+		} else {
+			fmt.Fprintf(&builder, ")%v", other.returnType)
+		}
 
 		return builder.String()
 	default:
@@ -101,5 +113,5 @@ func (t Type) String() string {
 }
 
 func SimpleType(typeEnum TypeEnum) Type {
-	return Type{category: typeEnum}
+	return Type{kind: typeEnum}
 }

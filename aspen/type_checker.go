@@ -23,16 +23,16 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 	}
 
 	sameCategory := func() bool {
-		return leftType.category == rightType.category
+		return leftType.kind == rightType.kind
 	}
 
 	bothNumeric := func() bool {
-		return leftType.category.IsNumeric() && sameCategory()
+		return leftType.kind.IsNumeric() && sameCategory()
 	}
 
 	switch expr.operator.tokenType {
 	case TOKEN_AMP_AMP, TOKEN_PIPE_PIPE:
-		check(leftType.category == TYPE_BOOL && rightType.category == TYPE_BOOL)
+		check(leftType.kind == TYPE_BOOL && rightType.kind == TYPE_BOOL)
 		return SimpleType(TYPE_BOOL)
 	case TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL:
 		check(sameCategory())
@@ -44,7 +44,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		check(bothNumeric())
 		return leftType
 	case TOKEN_PLUS:
-		check(sameCategory() && (leftType.category.IsNumeric() || leftType.category == TYPE_STRING))
+		check(sameCategory() && (leftType.kind.IsNumeric() || leftType.kind == TYPE_STRING))
 		return leftType
 	default:
 		panic("SemanticAnalyzer::VisitUnary unknown type")
@@ -62,10 +62,10 @@ func (tc *TypeChecker) VisitUnary(expr *UnaryExpression) interface{} {
 
 	switch expr.operator.tokenType {
 	case TOKEN_BANG:
-		check(operandType.category == TYPE_BOOL)
+		check(operandType.kind == TYPE_BOOL)
 		return SimpleType(TYPE_BOOL)
 	case TOKEN_MINUS:
-		check(operandType.category.IsNumeric())
+		check(operandType.kind.IsNumeric())
 		return operandType
 	default:
 		panic("SemanticAnalyzer::VisitUnary unknown type")
