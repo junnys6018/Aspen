@@ -16,16 +16,24 @@ func main() {
 
 		source := []rune(string(bytes))
 
-		errorReporter := AspenError{source: source}
-		tokens, err := ScanTokens(source, &errorReporter)
+		errorReporter := NewErrorReporter(source)
+		tokens, err := ScanTokens(source, errorReporter)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)
 			os.Exit(1)
 		}
 
-		errorReporter = AspenError{source: source}
-		ast, err := Parse(tokens, &errorReporter)
+		errorReporter = NewErrorReporter(source)
+		ast, err := Parse(tokens, errorReporter)
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v", err)
+			os.Exit(1)
+		}
+
+		errorReporter = NewErrorReporter(source)
+		err = TypeCheck(ast, errorReporter)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)

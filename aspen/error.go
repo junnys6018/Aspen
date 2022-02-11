@@ -19,6 +19,10 @@ type AspenError struct {
 	data   []ErrorData
 }
 
+func NewErrorReporter(source []rune) *AspenError {
+	return &AspenError{source: source}
+}
+
 func (e *AspenError) Push(line int, col int, message string) {
 	e.data = append(e.data, ErrorData{line, col, message})
 }

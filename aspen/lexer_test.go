@@ -51,8 +51,8 @@ func (tc *LexerTestCase) run(t *testing.T) {
 	}
 
 	source := []rune(tc.test)
-	errorReporter := AspenError{source: source}
-	tokens, err := ScanTokens(source, &errorReporter)
+	errorReporter := NewErrorReporter(source)
+	tokens, err := ScanTokens(source, errorReporter)
 
 	if tc.shouldError {
 		if err == nil {
