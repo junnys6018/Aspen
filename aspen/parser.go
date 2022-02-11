@@ -1,13 +1,22 @@
 package main
 
 type Parser struct {
-	tokens  TokenStream
-	current int
+	tokens        TokenStream
+	current       int
+	errorReporter ErrorReporter
 }
 
 // Grammar
 
 func (p *Parser) expression() Expression {
+	// temporary
+	defer func() {
+		if r := recover(); r != nil {
+			err := r.(ErrorData)
+			p.errorReporter.Push(err.line, err.col, err.message)
+		}
+	}()
+
 	return p.logicOr()
 }
 
@@ -136,21 +145,24 @@ func (p *Parser) primary() Expression {
 
 	if p.match(TOKEN_LEFT_PAREN) {
 		expr := p.expression()
-		p.consume(TOKEN_RIGHT_PAREN)
+		p.consume(TOKEN_RIGHT_PAREN, "expected \")\" after expression.")
 		return &GroupingExpression{expr: expr}
 	}
 
-	return nil
+	token := p.peek()
+
+	panic(ErrorData{token.line, token.col, "expected expression"})
 }
 
 // Helpers
 
-func (p *Parser) consume(tokenType TokenType) *Token {
-	if p.check(tokenType) {
+func (p *Parser) consume(tokenType TokenType, message string) *Token {
+	token := p.peek()
+	if token.tokenType == tokenType {
 		return p.advance()
 	}
 
-	return nil
+	panic(ErrorData{token.line, token.col, message})
 }
 
 func (p *Parser) match(tokenTypes ...TokenType) bool {
@@ -189,8 +201,14 @@ func (p *Parser) previous() *Token {
 	return &p.tokens[p.current-1]
 }
 
-func Parse(tokens TokenStream) (Expression, error) {
-	parser := Parser{tokens: tokens, current: 0}
+func Parse(tokens TokenStream, errorReporter ErrorReporter) (Expression, error) {
+	parser := Parser{tokens: tokens, current: 0, errorReporter: errorReporter}
+
 	expr := parser.expression()
-	return expr, nil
+
+	if errorReporter.HadError() {
+		return nil, errorReporter
+	} else {
+		return expr, nil
+	}
 }

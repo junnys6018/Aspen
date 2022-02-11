@@ -24,7 +24,8 @@ func main() {
 			os.Exit(1)
 		}
 
-		ast, err := Parse(tokens)
+		errorReporter = AspenError{source: source}
+		ast, err := Parse(tokens, &errorReporter)
 
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%v", err)

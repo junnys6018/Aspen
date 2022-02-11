@@ -27,7 +27,8 @@ func (tc *ParserTestCase) run(t *testing.T) {
 		return
 	}
 
-	ast, err := Parse(tokens)
+	errorReporter = AspenError{source: source}
+	ast, err := Parse(tokens, &errorReporter)
 
 	if err != nil {
 		t.Errorf("%s: failed to parse source code\n %v", tc.fileName, err)
