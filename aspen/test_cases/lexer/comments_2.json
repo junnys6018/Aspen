@@ -8,6 +8,12 @@
                 "col": 1
             },
             {
+                "type": "TOKEN_COMMENT",
+                "line": 2,
+                "col": 1,
+                "value": "blah"
+            },
+            {
                 "type": "TOKEN_EOF",
                 "line": 2,
                 "col": 7

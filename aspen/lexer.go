@@ -42,6 +42,7 @@ const (
 	TOKEN_STRING
 	TOKEN_FLOAT
 	TOKEN_INT
+	TOKEN_COMMENT
 
 	// keywords
 	TOKEN_ELSE
@@ -122,6 +123,8 @@ func (token Token) String() string {
 		return fmt.Sprintf("%.2f", token.value.(float64))
 	case TOKEN_INT:
 		return fmt.Sprintf("%d", token.value.(int64))
+	case TOKEN_COMMENT:
+		return "<comment>" // todo
 	case TOKEN_ELSE:
 		return "else"
 	case TOKEN_FOR:
@@ -230,6 +233,68 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 
 	simpleToken := func(tokenType TokenType) {
 		tokens = append(tokens, Token{tokenType, line, col, nil})
+	}
+
+	commentToken := func(start, end, line, col int) {
+		tokens = append(tokens, Token{TOKEN_COMMENT, line, col, string(source[start:end])})
+	}
+
+	singleLineComment := func() {
+		oldLine := line
+		oldCol := col
+		start := i
+
+		col += 2
+		for !isAtEnd() {
+			next := advance()
+			col++
+			if next == '\n' {
+				line++
+				col = 1
+				break
+			}
+		}
+
+		end := i
+		if source[end-1] == '\n' {
+			end-- // remove trailing newline
+		}
+
+		commentToken(start, end, oldLine, oldCol)
+	}
+
+	multiLineComment := func() {
+		oldLine := line
+		oldCol := col
+		start := i
+
+		col += 2
+		terminated := false
+
+		for !isAtEnd() {
+			next := advance()
+			col++
+			if next == '*' {
+				if !isAtEnd() {
+					next = advance()
+					col++
+					if next == '/' {
+						terminated = true
+						break
+					}
+				}
+			} else if next == '\n' {
+				line++
+				col = 1
+			}
+		}
+
+		if !terminated {
+			errorReporter.Push(line, col, "comment not terminated.")
+		} else {
+			end := i - 2
+			commentToken(start, end, oldLine, oldCol)
+		}
 	}
 
 	conditionalToken := func(ifNoMatch TokenType, ifMatch TokenType, matcher rune) {
@@ -374,44 +439,11 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 			simpleToken(TOKEN_CARET)
 			col++
 		case '/':
-			if match('/') /* comment */ {
-				col += 2
-				for !isAtEnd() {
-					next := advance()
-					col++
-					if next == '\n' {
-						line++
-						col = 1
-						break
-					}
-				}
-			} else if match('*') /* multiline comment */ {
-				col += 2
-				terminated := false
-
-				for !isAtEnd() {
-					next := advance()
-					col++
-					if next == '*' {
-						if !isAtEnd() {
-							next = advance()
-							col++
-							if next == '/' {
-								terminated = true
-								break
-							}
-						}
-					} else if next == '\n' {
-						line++
-						col = 1
-					}
-				}
-
-				if !terminated {
-					errorReporter.Push(line, col, "comment not terminated.")
-				}
-
-			} else /* token */ {
+			if match('/') {
+				singleLineComment()
+			} else if match('*') {
+				multiLineComment()
+			} else {
 				simpleToken(TOKEN_SLASH)
 				col++
 			}

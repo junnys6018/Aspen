@@ -3,6 +3,11 @@
     "expect": {
         "error": false,
         "result": [{
+            "type": "TOKEN_COMMENT",
+            "line": 1,
+            "col": 1,
+            "value": "blah"
+        }, {
             "type": "TOKEN_EOF",
             "line": 1,
             "col": 7

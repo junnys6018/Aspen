@@ -3,9 +3,16 @@
     "expect": {
         "error": false,
         "result": [{
-            "type": "TOKEN_EOF",
-            "line": 1,
-            "col": 27
-        }]
+                "type": "TOKEN_COMMENT",
+                "line": 1,
+                "col": 1,
+                "value": " some comment `2*3=6` "
+            },
+            {
+                "type": "TOKEN_EOF",
+                "line": 1,
+                "col": 27
+            }
+        ]
     }
 }

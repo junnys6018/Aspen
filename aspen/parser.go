@@ -202,7 +202,15 @@ func (p *Parser) previous() *Token {
 }
 
 func Parse(tokens TokenStream, errorReporter ErrorReporter) (Expression, error) {
-	parser := Parser{tokens: tokens, current: 0, errorReporter: errorReporter}
+	// remove comment tokens
+	filteredTokens := make(TokenStream, 0, len(tokens))
+	for _, token := range tokens {
+		if token.tokenType != TOKEN_COMMENT {
+			filteredTokens = append(filteredTokens, token)
+		}
+	}
+
+	parser := Parser{tokens: filteredTokens, current: 0, errorReporter: errorReporter}
 
 	expr := parser.expression()
 

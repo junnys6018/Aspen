@@ -2,10 +2,23 @@
     "test": "//blah\n{//blah",
     "expect": {
         "error": false,
-        "result": [{
+        "result": [
+            {
+                "type": "TOKEN_COMMENT",
+                "line": 1,
+                "col": 1,
+                "value": "blah"
+            },
+            {
                 "type": "TOKEN_LEFT_BRACE",
                 "line": 2,
                 "col": 1
+            },
+            {
+                "type": "TOKEN_COMMENT",
+                "line": 2,
+                "col": 2,
+                "value": "blah"
             },
             {
                 "type": "TOKEN_EOF",
