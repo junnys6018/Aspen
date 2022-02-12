@@ -23,6 +23,10 @@ func (t TypeEnum) IsNumeric() bool {
 	return t == TYPE_I64 || t == TYPE_U64 || t == TYPE_DOUBLE
 }
 
+func (t TypeEnum) IsIntegral() bool {
+	return t == TYPE_I64 || t == TYPE_U64
+}
+
 func (t TypeEnum) String() string {
 	switch t {
 	case TYPE_I64:

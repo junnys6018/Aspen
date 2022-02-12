@@ -1,0 +1,4 @@
+/*
+    4:7 invalid operation: operator + is not defined for bool and i64.
+*/
+(1==1)+1

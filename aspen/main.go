@@ -40,7 +40,8 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("%v\n", ast)
+		Interpret(ast)
+
 	} else {
 		fmt.Printf("usage: %v source.aspen\n", os.Args[0])
 	}

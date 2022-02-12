@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -35,4 +36,8 @@ func UnescapeString(s string) (string, error) {
 	}
 
 	return builder.String(), nil
+}
+
+func Unreachable(message string) {
+	panic(fmt.Sprintf("%s: unreachable code", message))
 }

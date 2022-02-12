@@ -23,11 +23,15 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 	}
 
 	sameCategory := func() bool {
-		return leftType.kind == rightType.kind
+		return leftType.kind == rightType.kind // todo: does not account for composite types
 	}
 
 	bothNumeric := func() bool {
 		return leftType.kind.IsNumeric() && sameCategory()
+	}
+
+	bothIntegral := func() bool {
+		return leftType.kind.IsIntegral() && sameCategory()
 	}
 
 	switch expr.operator.tokenType {
@@ -36,18 +40,21 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		return SimpleType(TYPE_BOOL)
 	case TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL:
 		check(sameCategory())
-		return leftType
+		return SimpleType(TYPE_BOOL)
 	case TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL:
 		check(bothNumeric())
 		return SimpleType(TYPE_BOOL)
-	case TOKEN_PIPE, TOKEN_CARET, TOKEN_AMP, TOKEN_MINUS, TOKEN_SLASH, TOKEN_STAR:
+	case TOKEN_PIPE, TOKEN_CARET, TOKEN_AMP:
+		check(bothIntegral())
+		return leftType
+	case TOKEN_MINUS, TOKEN_SLASH, TOKEN_STAR:
 		check(bothNumeric())
 		return leftType
 	case TOKEN_PLUS:
 		check(sameCategory() && (leftType.kind.IsNumeric() || leftType.kind == TYPE_STRING))
 		return leftType
 	default:
-		panic("SemanticAnalyzer::VisitUnary unknown type")
+		panic("TypeChecker::VisitUnary unknown type")
 	}
 }
 
@@ -68,7 +75,7 @@ func (tc *TypeChecker) VisitUnary(expr *UnaryExpression) interface{} {
 		check(operandType.kind.IsNumeric())
 		return operandType
 	default:
-		panic("SemanticAnalyzer::VisitUnary unknown type")
+		panic("TypeChecker::VisitUnary unknown type")
 	}
 }
 
@@ -85,7 +92,7 @@ func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
 	case TOKEN_STRING:
 		return SimpleType(TYPE_STRING)
 	default:
-		panic("SemanticAnalyzer::VisitLiteral unknown type")
+		panic("TypeChecker::VisitLiteral unknown type")
 	}
 }
 
@@ -110,7 +117,7 @@ func TypeCheck(ast Expression, errorReporter ErrorReporter) (err error) {
 		}
 	}()
 
-	semanticAnalyzer := TypeChecker{}
-	semanticAnalyzer.Visit(ast)
+	typeChecker := TypeChecker{}
+	typeChecker.Visit(ast)
 	return nil
 }

@@ -20,7 +20,7 @@ type LexerTestCase struct {
 	errors      []ErrorData
 }
 
-func ValuesEqual(a, b interface{}) bool {
+func LexerTestValuesEqual(a, b interface{}) bool {
 	if a == nil && b == nil {
 		return true
 	}
@@ -90,7 +90,7 @@ func (tc *LexerTestCase) run(t *testing.T) {
 			if expectToken.tokenType != tokens[i].tokenType ||
 				(expectToken.line != -1 && expectToken.line != tokens[i].line) ||
 				(expectToken.col != -1 && expectToken.col != tokens[i].col) ||
-				!ValuesEqual(expectToken.value, tokens[i].value) {
+				!LexerTestValuesEqual(expectToken.value, tokens[i].value) {
 				t.Errorf("%s: expected tokens[%d] to be %+v, got %+v", tc.fileName, i, expectToken, tokens[i])
 			}
 		}
