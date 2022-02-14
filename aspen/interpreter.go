@@ -1,61 +1,9 @@
 package main
 
-import "fmt"
-
 type Interpreter struct{}
 
 func (i *Interpreter) Visit(expr Expression) interface{} {
 	return expr.Accept(i)
-}
-
-func IsValueType(iface interface{}) bool {
-	switch iface.(type) {
-	case int64, uint64, float64, bool, nil:
-		return true
-	default:
-		return false
-	}
-}
-
-func PrintValue(iface interface{}) {
-	switch v := iface.(type) {
-	case []rune:
-		fmt.Println(string(v))
-	default:
-		fmt.Println(v)
-	}
-}
-
-func ValuesEqual(lhs, rhs interface{}) bool {
-	// todo: revisit this when we implement object types
-	if IsValueType(lhs) {
-		return lhs == rhs
-	}
-
-	switch lhsV := lhs.(type) {
-	case []rune:
-		rhsV := rhs.([]rune)
-		if len(rhsV) != len(lhsV) {
-			return false
-		}
-
-		for i := range lhsV {
-			if lhsV[i] != rhsV[i] {
-				return false
-			}
-		}
-		return true
-	}
-
-	Unreachable("ValuesEqual")
-	return false
-}
-
-func AddString(lhs, rhs []rune) []rune {
-	new := make([]rune, 0, len(lhs)+len(rhs))
-	new = append(new, lhs...)
-	new = append(new, rhs...)
-	return new
 }
 
 func (i *Interpreter) VisitBinary(expr *BinaryExpression) interface{} {

@@ -41,3 +41,10 @@ func UnescapeString(s string) (string, error) {
 func Unreachable(message string) {
 	panic(fmt.Sprintf("%s: unreachable code", message))
 }
+
+func AddString(lhs, rhs []rune) []rune {
+	new := make([]rune, 0, len(lhs)+len(rhs))
+	new = append(new, lhs...)
+	new = append(new, rhs...)
+	return new
+}

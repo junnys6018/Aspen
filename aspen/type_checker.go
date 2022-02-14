@@ -22,16 +22,16 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		}
 	}
 
-	sameCategory := func() bool {
+	sameType := func() bool {
 		return leftType.kind == rightType.kind // todo: does not account for composite types
 	}
 
 	bothNumeric := func() bool {
-		return leftType.kind.IsNumeric() && sameCategory()
+		return leftType.kind.IsNumeric() && sameType()
 	}
 
 	bothIntegral := func() bool {
-		return leftType.kind.IsIntegral() && sameCategory()
+		return leftType.kind.IsIntegral() && sameType()
 	}
 
 	switch expr.operator.tokenType {
@@ -39,7 +39,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		check(leftType.kind == TYPE_BOOL && rightType.kind == TYPE_BOOL)
 		return SimpleType(TYPE_BOOL)
 	case TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL:
-		check(sameCategory())
+		check(sameType())
 		return SimpleType(TYPE_BOOL)
 	case TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL:
 		check(bothNumeric())
@@ -51,7 +51,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		check(bothNumeric())
 		return leftType
 	case TOKEN_PLUS:
-		check(sameCategory() && (leftType.kind.IsNumeric() || leftType.kind == TYPE_STRING))
+		check(sameType() && (leftType.kind.IsNumeric() || leftType.kind == TYPE_STRING))
 		return leftType
 	}
 

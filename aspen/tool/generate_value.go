@@ -28,6 +28,52 @@ func writeBinaryOperatorFunction(w io.Writer, operator string, functionName stri
 	fmt.Fprintln(w, "}")
 }
 
+const code = `import "fmt"
+
+func IsValueType(iface interface{}) bool {
+	switch iface.(type) {
+	case int64, uint64, float64, bool, nil:
+		return true
+	default:
+		return false
+	}
+}
+
+func PrintValue(iface interface{}) {
+	switch v := iface.(type) {
+	case []rune:
+		fmt.Println(string(v))
+	default:
+		fmt.Println(v)
+	}
+}
+
+func ValuesEqual(lhs, rhs interface{}) bool {
+	// todo: revisit this when we implement object types
+	if IsValueType(lhs) {
+		return lhs == rhs
+	}
+
+	switch lhsV := lhs.(type) {
+	case []rune:
+		rhsV := rhs.([]rune)
+		if len(rhsV) != len(lhsV) {
+			return false
+		}
+
+		for i := range lhsV {
+			if lhsV[i] != rhsV[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	Unreachable("ValuesEqual")
+	return false
+}
+`
+
 func GenerateValueCode() {
 	path := "../value.go"
 
@@ -41,6 +87,8 @@ func GenerateValueCode() {
 	defer file.Close()
 
 	fmt.Fprintln(file, "package main")
+
+	file.WriteString(code)
 
 	writeBinaryOperatorFunction(file, ">", "OperatorGreater", true)
 	writeBinaryOperatorFunction(file, ">=", "OperatorGreaterEqual", true)
