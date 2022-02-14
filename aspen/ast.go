@@ -21,7 +21,7 @@ func (expr *BinaryExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *BinaryExpression) String() string {
 	printer := AstPrinter{}
-	printer.Visit(expr)
+	printer.VisitExpressionNode(expr)
 	return printer.builder.String()
 }
 
@@ -35,7 +35,7 @@ func (expr *UnaryExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *UnaryExpression) String() string {
 	printer := AstPrinter{}
-	printer.Visit(expr)
+	printer.VisitExpressionNode(expr)
 	return printer.builder.String()
 }
 
@@ -48,7 +48,7 @@ func (expr *LiteralExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *LiteralExpression) String() string {
 	printer := AstPrinter{}
-	printer.Visit(expr)
+	printer.VisitExpressionNode(expr)
 	return printer.builder.String()
 }
 
@@ -61,6 +61,40 @@ func (expr *GroupingExpression) Accept(visitor ExpressionVisitor) interface{} {
 }
 func (expr *GroupingExpression) String() string {
 	printer := AstPrinter{}
-	printer.Visit(expr)
+	printer.VisitExpressionNode(expr)
+	return printer.builder.String()
+}
+
+type StatementVisitor interface {
+	VisitExpression(stmt *ExpressionStatement) interface{}
+	VisitPrint(stmt *PrintStatement) interface{}
+}
+type Statement interface {
+	Accept(visitor StatementVisitor) interface{}
+	String() string
+}
+type ExpressionStatement struct {
+	expr Expression
+}
+
+func (stmt *ExpressionStatement) Accept(visitor StatementVisitor) interface{} {
+	return visitor.VisitExpression(stmt)
+}
+func (stmt *ExpressionStatement) String() string {
+	printer := AstPrinter{}
+	printer.VisitStatementNode(stmt)
+	return printer.builder.String()
+}
+
+type PrintStatement struct {
+	expr Expression
+}
+
+func (stmt *PrintStatement) Accept(visitor StatementVisitor) interface{} {
+	return visitor.VisitPrint(stmt)
+}
+func (stmt *PrintStatement) String() string {
+	printer := AstPrinter{}
+	printer.VisitStatementNode(stmt)
 	return printer.builder.String()
 }

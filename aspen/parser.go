@@ -8,7 +8,7 @@ type Parser struct {
 
 // Grammar
 
-func (p *Parser) expression() Expression {
+func (p *Parser) statement() Statement {
 	// temporary
 	defer func() {
 		if r := recover(); r != nil {
@@ -17,6 +17,25 @@ func (p *Parser) expression() Expression {
 		}
 	}()
 
+	if p.match(TOKEN_PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStatement()
+}
+
+func (p *Parser) printStatement() Statement {
+	expr := p.expression()
+	p.consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
+	return &PrintStatement{expr: expr}
+}
+
+func (p *Parser) expressionStatement() Statement {
+	expr := p.expression()
+	p.consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
+	return &ExpressionStatement{expr: expr}
+}
+
+func (p *Parser) expression() Expression {
 	return p.logicOr()
 }
 
@@ -201,7 +220,7 @@ func (p *Parser) previous() *Token {
 	return &p.tokens[p.current-1]
 }
 
-func Parse(tokens TokenStream, errorReporter ErrorReporter) (Expression, error) {
+func Parse(tokens TokenStream, errorReporter ErrorReporter) (Program, error) {
 	// remove comment tokens
 	filteredTokens := make(TokenStream, 0, len(tokens))
 	for _, token := range tokens {
@@ -212,11 +231,15 @@ func Parse(tokens TokenStream, errorReporter ErrorReporter) (Expression, error) 
 
 	parser := Parser{tokens: filteredTokens, current: 0, errorReporter: errorReporter}
 
-	expr := parser.expression()
+	statements := make(Program, 0)
+
+	for !parser.isAtEnd() {
+		statements = append(statements, parser.statement())
+	}
 
 	if errorReporter.HadError() {
 		return nil, errorReporter
 	} else {
-		return expr, nil
+		return statements, nil
 	}
 }

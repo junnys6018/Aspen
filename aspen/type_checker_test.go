@@ -13,11 +13,11 @@ import (
 type TypeCheckerTestCase struct {
 	fileName string
 	source   []rune
-	ast      Expression
+	ast      Program
 	errors   []ErrorData
 }
 
-func (tc *TypeCheckerTestCase) run(t *testing.T) {
+func (tc *TypeCheckerTestCase) Run(t *testing.T) {
 	if tc == nil {
 		return
 	}
@@ -55,7 +55,7 @@ func ScanErrorMessage(line string, lineNumber *int, col *int, message *string) {
 	*message = line[end+1:]
 }
 
-func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
+func NewTypeCheckerTestCase(file string, t *testing.T) TestCase {
 	data, err := os.ReadFile(file)
 
 	if err != nil {
@@ -114,6 +114,6 @@ func TestTypeChecker(t *testing.T) {
 	for _, match := range matches {
 		fmt.Printf("%s\n", match)
 		tc := NewTypeCheckerTestCase(match, t)
-		tc.run(t)
+		tc.Run(t)
 	}
 }

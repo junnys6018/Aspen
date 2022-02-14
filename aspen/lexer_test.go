@@ -49,7 +49,7 @@ func LexerTestValuesEqual(a, b interface{}) bool {
 	return a == b
 }
 
-func (tc *LexerTestCase) run(t *testing.T) {
+func (tc *LexerTestCase) Run(t *testing.T) {
 	if tc == nil {
 		return
 	}
@@ -234,7 +234,7 @@ func LexerTestGetValue(line string, tokenType string) (interface{}, error) {
 	}
 }
 
-func NewLexerTestCase(file string, t *testing.T) *LexerTestCase {
+func NewLexerTestCase(file string, t *testing.T) TestCase {
 	data, err := os.ReadFile(file)
 
 	if err != nil {
@@ -332,6 +332,6 @@ func TestLexer(t *testing.T) {
 	for _, match := range matches {
 		fmt.Printf("%s\n", match)
 		tc := NewLexerTestCase(match, t)
-		tc.run(t)
+		tc.Run(t)
 	}
 }

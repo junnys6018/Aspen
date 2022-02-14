@@ -32,8 +32,8 @@ type ASTNode struct {
 	fields Fields
 }
 
-func (n *ASTNode) write(w io.Writer) {
-	fmt.Fprintf(w, "type %sExpression struct {\n", n.name)
+func (n *ASTNode) write(w io.Writer, kind string) {
+	fmt.Fprintf(w, "type %s%s struct {\n", n.name, kind)
 	for _, field := range n.fields {
 		fmt.Fprintf(w, "%s %s\n", field.identifier, field.typeName)
 	}
@@ -49,8 +49,8 @@ type ASTMethod struct {
 	generator  ASTMethodGenerator
 }
 
-func (m *ASTMethod) write(w io.Writer, nodeName string) {
-	fmt.Fprintf(w, "func (expr *%sExpression) %s(%s) %s {\n", nodeName, m.name, m.arguments.asArguments(), m.returnType)
+func (m *ASTMethod) write(w io.Writer, nodeName string, kind string, shortHandKind string) {
+	fmt.Fprintf(w, "func (%s *%s%s) %s(%s) %s {\n", shortHandKind, nodeName, kind, m.name, m.arguments.asArguments(), m.returnType)
 
 	m.generator(w, nodeName)
 
@@ -58,8 +58,10 @@ func (m *ASTMethod) write(w io.Writer, nodeName string) {
 }
 
 type ASTNodes struct {
-	nodes   []ASTNode
-	methods []ASTMethod
+	kind          string
+	shortHandKind string
+	nodes         []ASTNode
+	methods       []ASTMethod
 }
 
 func (a *ASTNodes) defineNode(name string, fields Fields) {
@@ -71,17 +73,17 @@ func (a *ASTNodes) defineMethod(name string, arguments Fields, returnType string
 }
 
 func (a *ASTNodes) writeVisitorInterface(w io.Writer) {
-	io.WriteString(w, "type ExpressionVisitor interface {\n")
+	fmt.Fprintf(w, "type %sVisitor interface {\n", a.kind)
 
 	for _, node := range a.nodes {
-		fmt.Fprintf(w, "Visit%[1]s(expr *%[1]sExpression) interface{}\n", node.name)
+		fmt.Fprintf(w, "Visit%[1]s(%[2]s *%[1]s%[3]s) interface{}\n", node.name, a.shortHandKind, a.kind)
 	}
 
 	io.WriteString(w, "}\n")
 }
 
-func (a *ASTNodes) writeExpressionInterface(w io.Writer) {
-	io.WriteString(w, "type Expression interface {\n")
+func (a *ASTNodes) writeNodeInterface(w io.Writer) {
+	fmt.Fprintf(w, "type %s interface {\n", a.kind)
 
 	for _, method := range a.methods {
 		fmt.Fprintf(w, "%s(%s) %s\n", method.name, method.arguments.asArguments(), method.returnType)
@@ -92,52 +94,72 @@ func (a *ASTNodes) writeExpressionInterface(w io.Writer) {
 
 func (a *ASTNodes) writeNodes(w io.Writer) {
 	for _, node := range a.nodes {
-		node.write(w)
+		node.write(w, a.kind)
 		for _, method := range a.methods {
-			method.write(w, node.name)
+			method.write(w, node.name, a.kind, a.shortHandKind)
 		}
 	}
 }
 
 func (a *ASTNodes) write(w io.Writer) {
-	io.WriteString(w, "package main\n")
-
 	a.writeVisitorInterface(w)
-	a.writeExpressionInterface(w)
+	a.writeNodeInterface(w)
 	a.writeNodes(w)
 }
 
 func GenerateASTCode() {
-	a := &ASTNodes{}
+	exprNodes := &ASTNodes{kind: "Expression", shortHandKind: "expr"}
 
-	a.defineNode("Binary", Fields{
+	exprNodes.defineNode("Binary", Fields{
 		{"left", "Expression"},
 		{"right", "Expression"},
 		{"operator", "Token"},
 	})
 
-	a.defineNode("Unary", Fields{
+	exprNodes.defineNode("Unary", Fields{
 		{"operand", "Expression"},
 		{"operator", "Token"},
 	})
 
-	a.defineNode("Literal", Fields{
+	exprNodes.defineNode("Literal", Fields{
 		{"value", "Token"},
 	})
 
-	a.defineNode("Grouping", Fields{
+	exprNodes.defineNode("Grouping", Fields{
 		{"expr", "Expression"},
 	})
 
-	a.defineMethod("Accept", Fields{
+	exprNodes.defineMethod("Accept", Fields{
 		{"visitor", "ExpressionVisitor"},
 	}, "interface{}", func(w io.Writer, nodeName string) {
 		fmt.Fprintf(w, "return visitor.Visit%s(expr)\n", nodeName)
 	})
 
-	a.defineMethod("String", Fields{}, "string", func(w io.Writer, nodeName string) {
+	exprNodes.defineMethod("String", Fields{}, "string", func(w io.Writer, nodeName string) {
 		io.WriteString(w, "printer := AstPrinter{}\n")
-		io.WriteString(w, "printer.Visit(expr)\n")
+		io.WriteString(w, "printer.VisitExpressionNode(expr)\n")
+		io.WriteString(w, "return printer.builder.String()\n")
+	})
+
+	stmtNodes := &ASTNodes{kind: "Statement", shortHandKind: "stmt"}
+
+	stmtNodes.defineNode("Expression", Fields{
+		{"expr", "Expression"},
+	})
+
+	stmtNodes.defineNode("Print", Fields{
+		{"expr", "Expression"},
+	})
+
+	stmtNodes.defineMethod("Accept", Fields{
+		{"visitor", "StatementVisitor"},
+	}, "interface{}", func(w io.Writer, nodeName string) {
+		fmt.Fprintf(w, "return visitor.Visit%s(stmt)\n", nodeName)
+	})
+
+	stmtNodes.defineMethod("String", Fields{}, "string", func(w io.Writer, nodeName string) {
+		io.WriteString(w, "printer := AstPrinter{}\n")
+		io.WriteString(w, "printer.VisitStatementNode(stmt)\n")
 		io.WriteString(w, "return printer.builder.String()\n")
 	})
 
@@ -149,9 +171,12 @@ func GenerateASTCode() {
 		os.Stderr.WriteString(err.Error())
 		os.Exit(1)
 	}
+	defer file.Close()
 
-	a.write(file)
-	file.Close()
+	file.WriteString("package main\n")
+
+	exprNodes.write(file)
+	stmtNodes.write(file)
 
 	cmd := exec.Command("go", "fmt", path)
 	err = cmd.Run()

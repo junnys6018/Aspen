@@ -1,13 +1,20 @@
 package main
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type AstPrinter struct {
 	builder strings.Builder
 }
 
-func (p *AstPrinter) Visit(expr Expression) {
+func (p *AstPrinter) VisitExpressionNode(expr Expression) {
 	expr.Accept(p)
+}
+
+func (p *AstPrinter) VisitStatementNode(stmt Statement) {
+	stmt.Accept(p)
 }
 
 func (p *AstPrinter) parenthesize(name string, exprs ...Expression) {
@@ -17,7 +24,7 @@ func (p *AstPrinter) parenthesize(name string, exprs ...Expression) {
 
 	for _, expr := range exprs {
 		p.builder.WriteRune(' ')
-		p.Visit(expr)
+		p.VisitExpressionNode(expr)
 	}
 
 	p.builder.WriteRune(')')
@@ -41,4 +48,27 @@ func (p *AstPrinter) VisitLiteral(expr *LiteralExpression) interface{} {
 func (p *AstPrinter) VisitGrouping(expr *GroupingExpression) interface{} {
 	p.parenthesize("group", expr.expr)
 	return nil
+}
+
+func (p *AstPrinter) VisitExpression(stmt *ExpressionStatement) interface{} {
+	p.parenthesize("expr", stmt.expr)
+	return nil
+}
+
+func (p *AstPrinter) VisitPrint(stmt *PrintStatement) interface{} {
+	p.parenthesize("print", stmt.expr)
+	return nil
+}
+
+func (program Program) String() string {
+	builder := strings.Builder{}
+	builder.WriteRune('(')
+	for i, stmt := range program {
+		fmt.Fprint(&builder, stmt)
+		if i != len(program)-1 {
+			builder.WriteRune(' ')
+		}
+	}
+	builder.WriteRune(')')
+	return builder.String()
 }

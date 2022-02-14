@@ -1,4 +1,4 @@
 /*
     4:4 invalid operation: operator & is not defined for double and double.
 */
-1.0&1.0
+1.0&1.0;

@@ -2,13 +2,17 @@ package main
 
 type Interpreter struct{}
 
-func (i *Interpreter) Visit(expr Expression) interface{} {
+func (i *Interpreter) VisitExpressionNode(expr Expression) interface{} {
 	return expr.Accept(i)
 }
 
+func (i *Interpreter) VisitStatementNode(stmt Statement) interface{} {
+	return stmt.Accept(i)
+}
+
 func (i *Interpreter) VisitBinary(expr *BinaryExpression) interface{} {
-	lhs := i.Visit(expr.left)
-	rhs := i.Visit(expr.right)
+	lhs := i.VisitExpressionNode(expr.left)
+	rhs := i.VisitExpressionNode(expr.right)
 
 	switch expr.operator.tokenType {
 	case TOKEN_AMP_AMP:
@@ -54,7 +58,7 @@ func (i *Interpreter) VisitBinary(expr *BinaryExpression) interface{} {
 }
 
 func (i *Interpreter) VisitUnary(expr *UnaryExpression) interface{} {
-	operand := i.Visit(expr.operand)
+	operand := i.VisitExpressionNode(expr.operand)
 	switch expr.operator.tokenType {
 	case TOKEN_BANG:
 		return !operand.(bool)
@@ -94,12 +98,25 @@ func (i *Interpreter) VisitLiteral(expr *LiteralExpression) interface{} {
 }
 
 func (i *Interpreter) VisitGrouping(expr *GroupingExpression) interface{} {
-	return i.Visit(expr.expr)
+	return i.VisitExpressionNode(expr.expr)
 }
 
-func Interpret(ast Expression) (err error) {
-	interpreter := Interpreter{}
-	value := interpreter.Visit(ast)
+func (i *Interpreter) VisitExpression(stmt *ExpressionStatement) interface{} {
+	i.VisitExpressionNode(stmt.expr)
+	return nil
+}
+
+func (i *Interpreter) VisitPrint(stmt *PrintStatement) interface{} {
+	value := i.VisitExpressionNode(stmt.expr)
 	PrintValue(value)
+	return nil
+}
+
+func Interpret(ast Program) (err error) {
+	interpreter := Interpreter{}
+
+	for _, stmt := range ast {
+		interpreter.VisitStatementNode(stmt)
+	}
 	return nil
 }

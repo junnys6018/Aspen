@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+type Program []Statement
+
 const helpString = `useage: aspen [<options>] <path>
 
 Options
@@ -44,7 +46,7 @@ func ScanSource(source []rune) (TokenStream, error) {
 	return tokens, nil
 }
 
-func ParseSource(source []rune) (Expression, error) {
+func ParseSource(source []rune) (Program, error) {
 	tokens, err := ScanSource(source)
 
 	if err != nil {
@@ -61,7 +63,7 @@ func ParseSource(source []rune) (Expression, error) {
 	return ast, nil
 }
 
-func TypeCheckSource(source []rune) (Expression, error) {
+func TypeCheckSource(source []rune) (Program, error) {
 	ast, err := ParseSource(source)
 
 	if err != nil {

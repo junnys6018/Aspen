@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -11,9 +12,10 @@ type ParserTestCase struct {
 	fileName string
 	source   string
 	expect   string
+	kind     string
 }
 
-func (tc *ParserTestCase) run(t *testing.T) {
+func (tc *ParserTestCase) Run(t *testing.T) {
 	if tc == nil {
 		return
 	}
@@ -27,15 +29,25 @@ func (tc *ParserTestCase) run(t *testing.T) {
 		return
 	}
 
-	errorReporter = NewErrorReporter(source)
-	ast, err := Parse(tokens, errorReporter)
+	var astString string
 
-	if err != nil {
-		t.Errorf("%s: failed to parse source code\n %v", tc.fileName, err)
-		return
+	switch tc.kind {
+	case "TYPE PROGRAM":
+		errorReporter = NewErrorReporter(source)
+		ast, err := Parse(tokens, errorReporter)
+
+		if err != nil {
+			t.Errorf("%s: failed to parse source code\n %v", tc.fileName, err)
+			return
+		}
+
+		astString = ast.String()
+	case "TYPE EXPRESSION":
+		errorReporter = NewErrorReporter(source)
+		parser := Parser{tokens: tokens, current: 0, errorReporter: errorReporter}
+		expr := parser.expression()
+		astString = expr.String()
 	}
-
-	astString := ast.String()
 
 	if astString != tc.expect {
 		t.Errorf("%s: expected ast to be %s, got %s", tc.fileName, tc.expect, astString)
@@ -43,7 +55,7 @@ func (tc *ParserTestCase) run(t *testing.T) {
 	}
 }
 
-func NewParserTestCase(file string) *ParserTestCase {
+func NewParserTestCase(file string) TestCase {
 	data, err := os.ReadFile(file)
 	content := string(data)
 
@@ -52,17 +64,16 @@ func NewParserTestCase(file string) *ParserTestCase {
 		return nil
 	}
 
-	var source, expect string
+	var kind, source, expect string
 
-	for i, r := range content {
-		if r == '\n' {
-			expect = content[:i]
-			source = content[i+1:]
-			break
-		}
-	}
+	i := strings.Index(content, "\n")
+	j := i + 1 + strings.Index(content[i+1:], "\n")
 
-	return &ParserTestCase{file, source, expect}
+	kind = content[:i]
+	expect = content[i+1 : j]
+	source = content[j+1:]
+
+	return &ParserTestCase{file, source, expect, kind}
 }
 
 func TestParser(t *testing.T) {
@@ -76,6 +87,6 @@ func TestParser(t *testing.T) {
 	for _, match := range matches {
 		fmt.Printf("%s\n", match)
 		tc := NewParserTestCase(match)
-		tc.run(t)
+		tc.Run(t)
 	}
 }

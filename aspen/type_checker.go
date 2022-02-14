@@ -8,13 +8,17 @@ func (tc *TypeChecker) EmitError(token Token, message string) {
 	panic(ErrorData{token.line, token.col, message})
 }
 
-func (tc *TypeChecker) Visit(expr Expression) interface{} {
+func (tc *TypeChecker) VisitExpressionNode(expr Expression) interface{} {
 	return expr.Accept(tc)
 }
 
+func (tc *TypeChecker) VisitStatementNode(stmt Statement) interface{} {
+	return stmt.Accept(tc)
+}
+
 func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
-	leftType := tc.Visit(expr.left).(Type)
-	rightType := tc.Visit(expr.right).(Type)
+	leftType := tc.VisitExpressionNode(expr.left).(Type)
+	rightType := tc.VisitExpressionNode(expr.right).(Type)
 
 	check := func(condition bool) {
 		if !condition {
@@ -60,7 +64,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 }
 
 func (tc *TypeChecker) VisitUnary(expr *UnaryExpression) interface{} {
-	operandType := tc.Visit(expr.operand).(Type)
+	operandType := tc.VisitExpressionNode(expr.operand).(Type)
 
 	check := func(condition bool) {
 		if !condition {
@@ -100,10 +104,18 @@ func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
 }
 
 func (tc *TypeChecker) VisitGrouping(expr *GroupingExpression) interface{} {
-	return tc.Visit(expr.expr)
+	return tc.VisitExpressionNode(expr.expr)
 }
 
-func TypeCheck(ast Expression, errorReporter ErrorReporter) (err error) {
+func (tc *TypeChecker) VisitExpression(stmt *ExpressionStatement) interface{} {
+	return tc.VisitExpressionNode(stmt.expr)
+}
+
+func (tc *TypeChecker) VisitPrint(stmt *PrintStatement) interface{} {
+	return tc.VisitExpressionNode(stmt.expr)
+}
+
+func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch v := r.(type) {
@@ -121,6 +133,9 @@ func TypeCheck(ast Expression, errorReporter ErrorReporter) (err error) {
 	}()
 
 	typeChecker := TypeChecker{}
-	typeChecker.Visit(ast)
+
+	for _, stmt := range ast {
+		typeChecker.VisitStatementNode(stmt)
+	}
 	return nil
 }
