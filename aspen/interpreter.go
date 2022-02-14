@@ -89,7 +89,7 @@ func (i *Interpreter) VisitLiteral(expr *LiteralExpression) interface{} {
 		return expr.value.value.(int64)
 	case TOKEN_FLOAT:
 		return expr.value.value.(float64)
-	case TOKEN_STRING:
+	case TOKEN_STRING_LITERAL:
 		return expr.value.value.([]rune)
 	}
 

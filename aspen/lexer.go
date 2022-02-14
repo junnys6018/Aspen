@@ -15,6 +15,8 @@ const (
 	TOKEN_RIGHT_PAREN
 	TOKEN_LEFT_BRACE
 	TOKEN_RIGHT_BRACE
+	TOKEN_LEFT_SQUARE
+	TOKEN_RIGHT_SQUARE
 	TOKEN_COMMA
 	TOKEN_MINUS
 	TOKEN_PLUS
@@ -39,7 +41,7 @@ const (
 
 	// literals
 	TOKEN_IDENTIFIER
-	TOKEN_STRING
+	TOKEN_STRING_LITERAL
 	TOKEN_FLOAT
 	TOKEN_INT
 	TOKEN_COMMENT
@@ -56,6 +58,13 @@ const (
 	TOKEN_FALSE
 	TOKEN_LET
 	TOKEN_WHILE
+
+	// types
+	TOKEN_I64
+	TOKEN_U64
+	TOKEN_BOOL
+	TOKEN_STRING
+	TOKEN_DOUBLE
 
 	TOKEN_EOF
 )
@@ -77,6 +86,10 @@ func (token Token) String() string {
 		return "{"
 	case TOKEN_RIGHT_BRACE:
 		return "}"
+	case TOKEN_LEFT_SQUARE:
+		return "["
+	case TOKEN_RIGHT_SQUARE:
+		return "]"
 	case TOKEN_COMMA:
 		return ","
 	case TOKEN_MINUS:
@@ -117,7 +130,7 @@ func (token Token) String() string {
 		return "||"
 	case TOKEN_IDENTIFIER:
 		return fmt.Sprintf("%v", token.value.(string))
-	case TOKEN_STRING:
+	case TOKEN_STRING_LITERAL:
 		return fmt.Sprintf("\"%v\"", string(token.value.([]rune)))
 	case TOKEN_FLOAT:
 		return fmt.Sprintf("%.2f", token.value.(float64))
@@ -147,6 +160,16 @@ func (token Token) String() string {
 		return "let"
 	case TOKEN_WHILE:
 		return "while"
+	case TOKEN_I64:
+		return "i64"
+	case TOKEN_U64:
+		return "u64"
+	case TOKEN_BOOL:
+		return "bool"
+	case TOKEN_STRING:
+		return "string"
+	case TOKEN_DOUBLE:
+		return "double"
 	case TOKEN_EOF:
 		return "<eof>"
 	}
@@ -194,6 +217,11 @@ var KEYWORDS = map[string]TokenType{
 	"false":  TOKEN_FALSE,
 	"let":    TOKEN_LET,
 	"while":  TOKEN_WHILE,
+	"i64":    TOKEN_I64,
+	"u64":    TOKEN_U64,
+	"bool":   TOKEN_BOOL,
+	"string": TOKEN_STRING,
+	"double": TOKEN_DOUBLE,
 }
 
 // note: this function can be optimised, see: https://craftinginterpreters.com/scanning-on-demand.html#tries-and-state-machines
@@ -331,7 +359,7 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 		}
 		col++
 
-		tokens = append(tokens, Token{TOKEN_STRING, line, oldCol, source[start:end]})
+		tokens = append(tokens, Token{TOKEN_STRING_LITERAL, line, oldCol, source[start:end]})
 	}
 
 	numberToken := func() {
@@ -377,7 +405,7 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 
 		start := i - 1
 
-		for !isAtEnd() && IsLetter(peek()) {
+		for !isAtEnd() && (IsLetter(peek()) || unicode.IsDigit(peek())) {
 			advance()
 			col++
 		}
@@ -420,6 +448,12 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 			col++
 		case '}':
 			simpleToken(TOKEN_RIGHT_BRACE)
+			col++
+		case '[':
+			simpleToken(TOKEN_LEFT_SQUARE)
+			col++
+		case ']':
+			simpleToken(TOKEN_RIGHT_SQUARE)
 			col++
 		case ',':
 			simpleToken(TOKEN_COMMA)

@@ -107,6 +107,10 @@ func toTokenType(tokenType string) TokenType {
 		return TOKEN_LEFT_BRACE
 	case "TOKEN_RIGHT_BRACE":
 		return TOKEN_RIGHT_BRACE
+	case "TOKEN_LEFT_SQUARE":
+		return TOKEN_LEFT_SQUARE
+	case "TOKEN_RIGHT_SQUARE":
+		return TOKEN_RIGHT_SQUARE
 	case "TOKEN_COMMA":
 		return TOKEN_COMMA
 	case "TOKEN_MINUS":
@@ -147,8 +151,8 @@ func toTokenType(tokenType string) TokenType {
 		return TOKEN_PIPE_PIPE
 	case "TOKEN_IDENTIFIER":
 		return TOKEN_IDENTIFIER
-	case "TOKEN_STRING":
-		return TOKEN_STRING
+	case "TOKEN_STRING_LITERAL":
+		return TOKEN_STRING_LITERAL
 	case "TOKEN_FLOAT":
 		return TOKEN_FLOAT
 	case "TOKEN_INT":
@@ -177,6 +181,16 @@ func toTokenType(tokenType string) TokenType {
 		return TOKEN_LET
 	case "TOKEN_WHILE":
 		return TOKEN_WHILE
+	case "TOKEN_I64":
+		return TOKEN_I64
+	case "TOKEN_U64":
+		return TOKEN_U64
+	case "TOKEN_BOOL":
+		return TOKEN_BOOL
+	case "TOKEN_STRING":
+		return TOKEN_STRING
+	case "TOKEN_DOUBLE":
+		return TOKEN_DOUBLE
 	case "TOKEN_EOF":
 		return TOKEN_EOF
 	}
@@ -211,7 +225,7 @@ func LexerTestGetValue(line string, tokenType string) (interface{}, error) {
 		var i int64
 		fmt.Sscanf(valueString, "%d", &i)
 		return i, nil
-	case "TOKEN_STRING":
+	case "TOKEN_STRING_LITERAL":
 		unescaped, err := UnescapeString(valueString)
 		if err != nil {
 			return nil, err
@@ -294,7 +308,7 @@ func NewLexerTestCase(file string, t *testing.T) TestCase {
 			fmt.Sscanf(line, "%d:%d %s", &lineNumber, &col, &tokenType)
 
 			var value interface{}
-			hasValue := tokenType == "TOKEN_INT" || tokenType == "TOKEN_STRING" || tokenType == "TOKEN_FLOAT" || tokenType == "TOKEN_COMMENT" || tokenType == "TOKEN_IDENTIFIER"
+			hasValue := tokenType == "TOKEN_INT" || tokenType == "TOKEN_STRING_LITERAL" || tokenType == "TOKEN_FLOAT" || tokenType == "TOKEN_COMMENT" || tokenType == "TOKEN_IDENTIFIER"
 
 			if hasValue {
 				value, err = LexerTestGetValue(line, tokenType)

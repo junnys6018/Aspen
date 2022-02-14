@@ -95,7 +95,7 @@ func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
 		return SimpleType(TYPE_I64)
 	case TOKEN_FLOAT:
 		return SimpleType(TYPE_DOUBLE)
-	case TOKEN_STRING:
+	case TOKEN_STRING_LITERAL:
 		return SimpleType(TYPE_STRING)
 	}
 
