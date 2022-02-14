@@ -179,9 +179,10 @@ func toTokenType(tokenType string) TokenType {
 		return TOKEN_WHILE
 	case "TOKEN_EOF":
 		return TOKEN_EOF
-	default:
-		panic(fmt.Sprintf("unknown token %s", tokenType))
 	}
+
+	Unreachable("lexer_test.go: toTokenType()")
+	return 0
 }
 
 func LexerTestGetValue(line string, tokenType string) (interface{}, error) {

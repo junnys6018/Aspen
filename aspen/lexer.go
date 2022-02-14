@@ -149,9 +149,10 @@ func (token Token) String() string {
 		return "while"
 	case TOKEN_EOF:
 		return "<eof>"
-	default:
-		panic(fmt.Sprintf("unknown token type %d", token.tokenType))
 	}
+
+	Unreachable("Token::String")
+	return ""
 }
 
 type TokenStream []Token
@@ -326,7 +327,7 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 		end := i
 
 		if !match('"') {
-			panic("bug, this should always match")
+			Unreachable("lexer.go: stringToken()")
 		}
 		col++
 
@@ -358,13 +359,13 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 		if isInteger {
 			value, err := strconv.ParseInt(string(source[start:end]), 10, 64)
 			if err != nil {
-				panic("bug: should never error here")
+				Unreachable("lexer.go: numberToken()")
 			}
 			tokens = append(tokens, Token{TOKEN_INT, line, oldCol, value})
 		} else {
 			value, err := strconv.ParseFloat(string(source[start:end]), 64)
 			if err != nil {
-				panic("bug: should never error here")
+				Unreachable("lexer.go: numberToken()")
 			}
 			tokens = append(tokens, Token{TOKEN_FLOAT, line, oldCol, value})
 		}

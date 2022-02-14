@@ -47,9 +47,10 @@ func (t TypeEnum) String() string {
 		return "slice"
 	case TYPE_FUNCTION:
 		return "function"
-	default:
-		panic("TypeEnum::String unknown type")
 	}
+
+	Unreachable("TypeEnum::String")
+	return ""
 }
 
 type ArrayType struct {
@@ -115,9 +116,10 @@ func (t Type) String() string {
 		}
 
 		return builder.String()
-	default:
-		panic("TypeEnum::String unknown type")
 	}
+
+	Unreachable("Type::String")
+	return ""
 }
 
 func SimpleType(typeEnum TypeEnum) Type {

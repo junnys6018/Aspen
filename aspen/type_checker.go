@@ -53,9 +53,10 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 	case TOKEN_PLUS:
 		check(sameCategory() && (leftType.kind.IsNumeric() || leftType.kind == TYPE_STRING))
 		return leftType
-	default:
-		panic("TypeChecker::VisitUnary unknown type")
 	}
+
+	Unreachable("TypeChecker::VisitUnary")
+	return nil
 }
 
 func (tc *TypeChecker) VisitUnary(expr *UnaryExpression) interface{} {
@@ -74,9 +75,10 @@ func (tc *TypeChecker) VisitUnary(expr *UnaryExpression) interface{} {
 	case TOKEN_MINUS:
 		check(operandType.kind.IsNumeric())
 		return operandType
-	default:
-		panic("TypeChecker::VisitUnary unknown type")
 	}
+
+	Unreachable("TypeChecker::VisitUnary")
+	return nil
 }
 
 func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
@@ -91,9 +93,10 @@ func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
 		return SimpleType(TYPE_DOUBLE)
 	case TOKEN_STRING:
 		return SimpleType(TYPE_STRING)
-	default:
-		panic("TypeChecker::VisitLiteral unknown type")
 	}
+
+	Unreachable("TypeChecker::VisitLiteral")
+	return nil
 }
 
 func (tc *TypeChecker) VisitGrouping(expr *GroupingExpression) interface{} {
