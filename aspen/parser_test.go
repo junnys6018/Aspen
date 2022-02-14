@@ -12,7 +12,6 @@ type ParserTestCase struct {
 	fileName string
 	source   string
 	expect   string
-	kind     string
 }
 
 func (tc *ParserTestCase) Run(t *testing.T) {
@@ -29,25 +28,15 @@ func (tc *ParserTestCase) Run(t *testing.T) {
 		return
 	}
 
-	var astString string
+	errorReporter = NewErrorReporter(source)
+	ast, err := Parse(tokens, errorReporter)
 
-	switch tc.kind {
-	case "TYPE PROGRAM":
-		errorReporter = NewErrorReporter(source)
-		ast, err := Parse(tokens, errorReporter)
-
-		if err != nil {
-			t.Errorf("%s: failed to parse source code\n %v", tc.fileName, err)
-			return
-		}
-
-		astString = ast.String()
-	case "TYPE EXPRESSION":
-		errorReporter = NewErrorReporter(source)
-		parser := Parser{tokens: tokens, current: 0, errorReporter: errorReporter}
-		expr := parser.Expression()
-		astString = expr.String()
+	if err != nil {
+		t.Errorf("%s: failed to parse source code\n %v", tc.fileName, err)
+		return
 	}
+
+	astString := ast.String()
 
 	if astString != tc.expect {
 		t.Errorf("%s: expected ast to be %s, got %s", tc.fileName, tc.expect, astString)
@@ -64,16 +53,14 @@ func NewParserTestCase(file string) TestCase {
 		return nil
 	}
 
-	var kind, source, expect string
+	var source, expect string
 
 	i := strings.Index(content, "\n")
-	j := i + 1 + strings.Index(content[i+1:], "\n")
 
-	kind = content[:i]
-	expect = content[i+1 : j]
-	source = content[j+1:]
+	expect = content[:i]
+	source = content[i+1:]
 
-	return &ParserTestCase{file, source, expect, kind}
+	return &ParserTestCase{file, source, expect}
 }
 
 func TestParser(t *testing.T) {

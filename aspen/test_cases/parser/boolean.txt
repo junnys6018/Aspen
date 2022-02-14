@@ -1,3 +1,2 @@
-TYPE EXPRESSION
-(|| true (&& true false))
-true||true&&false
+((expr (|| true (&& true false))))
+true||true&&false;
