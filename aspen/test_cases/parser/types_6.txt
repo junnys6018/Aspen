@@ -1,0 +1,2 @@
+((let foo (fn(bool)i64)[]))
+let foo (fn(bool)i64)[];

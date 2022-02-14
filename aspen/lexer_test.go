@@ -167,8 +167,8 @@ func toTokenType(tokenType string) TokenType {
 		return TOKEN_FN
 	case "TOKEN_IF":
 		return TOKEN_IF
-	case "TOKEN_NIL":
-		return TOKEN_NIL
+	case "TOKEN_VOID":
+		return TOKEN_VOID
 	case "TOKEN_PRINT":
 		return TOKEN_PRINT
 	case "TOKEN_RETURN":

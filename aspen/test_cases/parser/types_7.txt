@@ -1,0 +1,2 @@
+((let foo (fn(i64, bool, bool[][], fn(i64)i64[], (fn()i64)[])i64[])[][]))
+let foo (fn(i64, bool, bool[][], fn(i64)i64[], (fn()i64)[])i64[])[][];

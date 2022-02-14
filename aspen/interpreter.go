@@ -83,8 +83,6 @@ func (i *Interpreter) VisitLiteral(expr *LiteralExpression) interface{} {
 		return false
 	case TOKEN_TRUE:
 		return true
-	case TOKEN_NIL:
-		return nil
 	case TOKEN_INT:
 		return expr.value.value.(int64)
 	case TOKEN_FLOAT:
@@ -110,6 +108,10 @@ func (i *Interpreter) VisitPrint(stmt *PrintStatement) interface{} {
 	value := i.VisitExpressionNode(stmt.expr)
 	PrintValue(value)
 	return nil
+}
+
+func (i *Interpreter) VisitLet(stmt *LetStatement) interface{} {
+	return nil // todo
 }
 
 func Interpret(ast Program) (err error) {

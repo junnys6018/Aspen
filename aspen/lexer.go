@@ -51,7 +51,7 @@ const (
 	TOKEN_FOR
 	TOKEN_FN
 	TOKEN_IF
-	TOKEN_NIL
+	TOKEN_VOID
 	TOKEN_PRINT
 	TOKEN_RETURN
 	TOKEN_TRUE
@@ -146,8 +146,8 @@ func (token Token) String() string {
 		return "fn"
 	case TOKEN_IF:
 		return "if"
-	case TOKEN_NIL:
-		return "nil"
+	case TOKEN_VOID:
+		return "void"
 	case TOKEN_PRINT:
 		return "print"
 	case TOKEN_RETURN:
@@ -210,7 +210,7 @@ var KEYWORDS = map[string]TokenType{
 	"for":    TOKEN_FOR,
 	"fn":     TOKEN_FN,
 	"if":     TOKEN_IF,
-	"nil":    TOKEN_NIL,
+	"void":   TOKEN_VOID,
 	"print":  TOKEN_PRINT,
 	"return": TOKEN_RETURN,
 	"true":   TOKEN_TRUE,

@@ -23,6 +23,9 @@ func (p *AstPrinter) parenthesize(name string, exprs ...Expression) {
 	p.builder.WriteString(name)
 
 	for _, expr := range exprs {
+		if expr == nil {
+			continue
+		}
 		p.builder.WriteRune(' ')
 		p.VisitExpressionNode(expr)
 	}
@@ -57,6 +60,11 @@ func (p *AstPrinter) VisitExpression(stmt *ExpressionStatement) interface{} {
 
 func (p *AstPrinter) VisitPrint(stmt *PrintStatement) interface{} {
 	p.parenthesize("print", stmt.expr)
+	return nil
+}
+
+func (p *AstPrinter) VisitLet(stmt *LetStatement) interface{} {
+	p.parenthesize(fmt.Sprintf("let %s %s", stmt.name.value, stmt.atype), stmt.initializer)
 	return nil
 }
 

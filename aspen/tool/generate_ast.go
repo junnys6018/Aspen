@@ -151,6 +151,12 @@ func GenerateASTCode() {
 		{"expr", "Expression"},
 	})
 
+	stmtNodes.defineNode("Let", Fields{
+		{"name", "Token"},
+		{"initializer", "Expression"},
+		{"atype", "*Type"},
+	})
+
 	stmtNodes.defineMethod("Accept", Fields{
 		{"visitor", "StatementVisitor"},
 	}, "interface{}", func(w io.Writer, nodeName string) {

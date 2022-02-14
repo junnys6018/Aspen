@@ -17,8 +17,8 @@ func (tc *TypeChecker) VisitStatementNode(stmt Statement) interface{} {
 }
 
 func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
-	leftType := tc.VisitExpressionNode(expr.left).(Type)
-	rightType := tc.VisitExpressionNode(expr.right).(Type)
+	leftType := tc.VisitExpressionNode(expr.left).(*Type)
+	rightType := tc.VisitExpressionNode(expr.right).(*Type)
 
 	check := func(condition bool) {
 		if !condition {
@@ -26,16 +26,12 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		}
 	}
 
-	sameType := func() bool {
-		return leftType.kind == rightType.kind // todo: does not account for composite types
-	}
-
 	bothNumeric := func() bool {
-		return leftType.kind.IsNumeric() && sameType()
+		return leftType.kind.IsNumeric() && leftType.kind == rightType.kind
 	}
 
 	bothIntegral := func() bool {
-		return leftType.kind.IsIntegral() && sameType()
+		return leftType.kind.IsIntegral() && leftType.kind == rightType.kind
 	}
 
 	switch expr.operator.tokenType {
@@ -43,7 +39,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		check(leftType.kind == TYPE_BOOL && rightType.kind == TYPE_BOOL)
 		return SimpleType(TYPE_BOOL)
 	case TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL:
-		check(sameType())
+		check(TypesEqual(leftType, rightType))
 		return SimpleType(TYPE_BOOL)
 	case TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL:
 		check(bothNumeric())
@@ -55,7 +51,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 		check(bothNumeric())
 		return leftType
 	case TOKEN_PLUS:
-		check(sameType() && (leftType.kind.IsNumeric() || leftType.kind == TYPE_STRING))
+		check(leftType.kind == rightType.kind && (leftType.kind.IsNumeric() || leftType.kind == TYPE_STRING))
 		return leftType
 	}
 
@@ -64,7 +60,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 }
 
 func (tc *TypeChecker) VisitUnary(expr *UnaryExpression) interface{} {
-	operandType := tc.VisitExpressionNode(expr.operand).(Type)
+	operandType := tc.VisitExpressionNode(expr.operand).(*Type)
 
 	check := func(condition bool) {
 		if !condition {
@@ -89,8 +85,6 @@ func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
 	switch expr.value.tokenType {
 	case TOKEN_FALSE, TOKEN_TRUE:
 		return SimpleType(TYPE_BOOL)
-	case TOKEN_NIL:
-		return SimpleType(TYPE_NIL)
 	case TOKEN_INT:
 		return SimpleType(TYPE_I64)
 	case TOKEN_FLOAT:
@@ -113,6 +107,17 @@ func (tc *TypeChecker) VisitExpression(stmt *ExpressionStatement) interface{} {
 
 func (tc *TypeChecker) VisitPrint(stmt *PrintStatement) interface{} {
 	return tc.VisitExpressionNode(stmt.expr)
+}
+
+func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
+	if stmt.initializer != nil {
+		atype := tc.VisitExpressionNode(stmt.initializer).(*Type)
+		if !TypesEqual(stmt.atype, atype) {
+			tc.EmitError(stmt.name, fmt.Sprintf("cannot assign expression of type %v, to '%s' which has type %v.", atype, stmt.name.value, stmt.atype))
+		}
+	}
+
+	return stmt.atype
 }
 
 func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {

@@ -68,6 +68,7 @@ func (expr *GroupingExpression) String() string {
 type StatementVisitor interface {
 	VisitExpression(stmt *ExpressionStatement) interface{}
 	VisitPrint(stmt *PrintStatement) interface{}
+	VisitLet(stmt *LetStatement) interface{}
 }
 type Statement interface {
 	Accept(visitor StatementVisitor) interface{}
@@ -94,6 +95,21 @@ func (stmt *PrintStatement) Accept(visitor StatementVisitor) interface{} {
 	return visitor.VisitPrint(stmt)
 }
 func (stmt *PrintStatement) String() string {
+	printer := AstPrinter{}
+	printer.VisitStatementNode(stmt)
+	return printer.builder.String()
+}
+
+type LetStatement struct {
+	name        Token
+	initializer Expression
+	atype       *Type
+}
+
+func (stmt *LetStatement) Accept(visitor StatementVisitor) interface{} {
+	return visitor.VisitLet(stmt)
+}
+func (stmt *LetStatement) String() string {
 	printer := AstPrinter{}
 	printer.VisitStatementNode(stmt)
 	return printer.builder.String()

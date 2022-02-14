@@ -1,0 +1,2 @@
+((let foo fn()void))
+let foo fn()void;

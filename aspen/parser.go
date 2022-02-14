@@ -25,7 +25,9 @@ func (p *Parser) Synchronize() {
 
 // Grammar
 
-func (p *Parser) Statement() Statement {
+// Statements
+
+func (p *Parser) Declaration() Statement {
 	defer func() {
 		if r := recover(); r != nil {
 			err := r.(ErrorData)
@@ -34,6 +36,14 @@ func (p *Parser) Statement() Statement {
 		}
 	}()
 
+	if p.Match(TOKEN_LET) {
+		return p.LetStatement()
+	}
+
+	return p.Statement()
+}
+
+func (p *Parser) Statement() Statement {
 	if p.Match(TOKEN_PRINT) {
 		return p.PrintStatement()
 	}
@@ -51,6 +61,22 @@ func (p *Parser) ExpressionStatement() Statement {
 	p.Consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
 	return &ExpressionStatement{expr: expr}
 }
+
+func (p *Parser) LetStatement() Statement {
+	name := p.Consume(TOKEN_IDENTIFIER, "expected variable name.")
+	atype := p.Type()
+
+	var initializer Expression
+
+	if p.Match(TOKEN_EQUAL) {
+		initializer = p.Expression()
+	}
+
+	p.Consume(TOKEN_SEMICOLON, "expected \";\" after variable declaration.")
+	return &LetStatement{name: *name, initializer: initializer, atype: atype}
+}
+
+// Expressions
 
 func (p *Parser) Expression() Expression {
 	return p.LogicOr()
@@ -175,7 +201,7 @@ func (p *Parser) Unary() Expression {
 }
 
 func (p *Parser) Primary() Expression {
-	if p.Match(TOKEN_FALSE, TOKEN_TRUE, TOKEN_NIL, TOKEN_INT, TOKEN_FLOAT, TOKEN_STRING) {
+	if p.Match(TOKEN_FALSE, TOKEN_TRUE, TOKEN_INT, TOKEN_FLOAT, TOKEN_STRING_LITERAL) {
 		return &LiteralExpression{value: *p.Previous()}
 	}
 
@@ -187,7 +213,81 @@ func (p *Parser) Primary() Expression {
 
 	token := p.Peek()
 
-	panic(ErrorData{token.line, token.col, "expected expression"})
+	panic(ErrorData{token.line, token.col, "expected expression."})
+}
+
+// Types
+
+func (p *Parser) Type() *Type {
+	return p.Function()
+}
+
+func (p *Parser) Function() *Type {
+	if p.Match(TOKEN_FN) {
+		parameters := make([]*Type, 0)
+		p.Consume(TOKEN_LEFT_PAREN, "expected \"(\".")
+
+		if !p.Check(TOKEN_RIGHT_PAREN) {
+			parameters = append(parameters, p.Type())
+			for p.Match(TOKEN_COMMA) {
+				parameters = append(parameters, p.Type())
+			}
+		}
+
+		p.Consume(TOKEN_RIGHT_PAREN, "expected \")\".")
+
+		var returnType *Type
+		if p.Match(TOKEN_VOID) {
+			returnType = SimpleType(TYPE_VOID)
+		} else {
+			returnType = p.Type()
+		}
+		return &Type{kind: TYPE_FUNCTION, other: FunctionType{parameters: parameters, returnType: returnType}}
+	}
+
+	return p.Slice()
+}
+
+func (p *Parser) Slice() *Type {
+	atype := p.Primitive()
+
+	for p.Match(TOKEN_LEFT_SQUARE) {
+		p.Consume(TOKEN_RIGHT_SQUARE, "expected \"]\" after type definition.")
+		atype = &Type{kind: TYPE_SLICE, other: SliceType{of: atype}}
+	}
+	return atype
+}
+
+func (p *Parser) Primitive() *Type {
+	convert := func(tokenType TokenType) TypeEnum {
+		switch tokenType {
+		case TOKEN_I64:
+			return TYPE_I64
+		case TOKEN_U64:
+			return TYPE_U64
+		case TOKEN_BOOL:
+			return TYPE_BOOL
+		case TOKEN_STRING:
+			return TYPE_STRING
+		case TOKEN_DOUBLE:
+			return TYPE_DOUBLE
+		}
+		Unreachable("Parser::Primitive convert()")
+		return 0
+	}
+
+	if p.Match(TOKEN_I64, TOKEN_U64, TOKEN_BOOL, TOKEN_STRING, TOKEN_DOUBLE) {
+		return SimpleType(convert(p.Previous().tokenType))
+	}
+
+	if p.Match(TOKEN_LEFT_PAREN) {
+		atype := p.Type()
+		p.Consume(TOKEN_RIGHT_PAREN, "expected \")\" after type definition.")
+		return atype
+	}
+
+	token := p.Peek()
+	panic(ErrorData{token.line, token.col, "expected type definition."})
 }
 
 // Helpers
@@ -251,7 +351,7 @@ func Parse(tokens TokenStream, errorReporter ErrorReporter) (Program, error) {
 	statements := make(Program, 0)
 
 	for !parser.IsAtEnd() {
-		statements = append(statements, parser.Statement())
+		statements = append(statements, parser.Declaration())
 	}
 
 	if errorReporter.HadError() {
