@@ -110,10 +110,14 @@ func (tc *TypeChecker) VisitPrint(stmt *PrintStatement) interface{} {
 }
 
 func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
+	if stmt.initializer == nil && (stmt.atype.kind == TYPE_SLICE || stmt.atype.kind == TYPE_FUNCTION) {
+		tc.EmitError(stmt.name, fmt.Sprintf("'%s' must be initialized.", stmt.name.value))
+	}
+
 	if stmt.initializer != nil {
 		atype := tc.VisitExpressionNode(stmt.initializer).(*Type)
 		if !TypesEqual(stmt.atype, atype) {
-			tc.EmitError(stmt.name, fmt.Sprintf("cannot assign expression of type %v, to '%s' which has type %v.", atype, stmt.name.value, stmt.atype))
+			tc.EmitError(stmt.name, fmt.Sprintf("cannot assign expression of type %v to '%s', which has type %v.", atype, stmt.name.value, stmt.atype))
 		}
 	}
 

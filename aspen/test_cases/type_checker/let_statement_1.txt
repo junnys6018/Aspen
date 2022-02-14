@@ -1,0 +1,4 @@
+/*
+    4:5 cannot assign expression of type string to 'foo', which has type i64.
+*/
+let foo i64 = "hello, world";

@@ -1,0 +1,4 @@
+/*
+    4:5 'foo' must be initialized.
+*/
+let foo fn()void;
