@@ -6,217 +6,234 @@ type Parser struct {
 	errorReporter ErrorReporter
 }
 
+func (p *Parser) Synchronize() {
+	p.Advance()
+
+	for !p.IsAtEnd() {
+		if p.Previous().tokenType == TOKEN_SEMICOLON {
+			return
+		}
+
+		switch p.Peek().tokenType {
+		case TOKEN_FN, TOKEN_LET, TOKEN_FOR, TOKEN_IF, TOKEN_WHILE, TOKEN_PRINT, TOKEN_RETURN:
+			return
+		}
+
+		p.Advance()
+	}
+}
+
 // Grammar
 
-func (p *Parser) statement() Statement {
-	// temporary
+func (p *Parser) Statement() Statement {
 	defer func() {
 		if r := recover(); r != nil {
 			err := r.(ErrorData)
 			p.errorReporter.Push(err.line, err.col, err.message)
+			p.Synchronize()
 		}
 	}()
 
-	if p.match(TOKEN_PRINT) {
-		return p.printStatement()
+	if p.Match(TOKEN_PRINT) {
+		return p.PrintStatement()
 	}
-	return p.expressionStatement()
+	return p.ExpressionStatement()
 }
 
-func (p *Parser) printStatement() Statement {
-	expr := p.expression()
-	p.consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
+func (p *Parser) PrintStatement() Statement {
+	expr := p.Expression()
+	p.Consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
 	return &PrintStatement{expr: expr}
 }
 
-func (p *Parser) expressionStatement() Statement {
-	expr := p.expression()
-	p.consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
+func (p *Parser) ExpressionStatement() Statement {
+	expr := p.Expression()
+	p.Consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
 	return &ExpressionStatement{expr: expr}
 }
 
-func (p *Parser) expression() Expression {
-	return p.logicOr()
+func (p *Parser) Expression() Expression {
+	return p.LogicOr()
 }
 
-func (p *Parser) logicOr() Expression {
-	expr := p.logicAnd()
+func (p *Parser) LogicOr() Expression {
+	expr := p.LogicAnd()
 
-	for p.match(TOKEN_PIPE_PIPE) {
-		operator := p.previous()
-		right := p.logicAnd()
+	for p.Match(TOKEN_PIPE_PIPE) {
+		operator := p.Previous()
+		right := p.LogicAnd()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) logicAnd() Expression {
-	expr := p.equality()
+func (p *Parser) LogicAnd() Expression {
+	expr := p.Equality()
 
-	for p.match(TOKEN_AMP_AMP) {
-		operator := p.previous()
-		right := p.equality()
+	for p.Match(TOKEN_AMP_AMP) {
+		operator := p.Previous()
+		right := p.Equality()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) equality() Expression {
-	expr := p.comparison()
+func (p *Parser) Equality() Expression {
+	expr := p.Comparison()
 
-	for p.match(TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL) {
-		operator := p.previous()
-		right := p.comparison()
+	for p.Match(TOKEN_EQUAL_EQUAL, TOKEN_BANG_EQUAL) {
+		operator := p.Previous()
+		right := p.Comparison()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) comparison() Expression {
-	expr := p.bitOr()
+func (p *Parser) Comparison() Expression {
+	expr := p.BitOr()
 
-	for p.match(TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL) {
-		operator := p.previous()
-		right := p.bitOr()
+	for p.Match(TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL) {
+		operator := p.Previous()
+		right := p.BitOr()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) bitOr() Expression {
-	expr := p.bitXor()
+func (p *Parser) BitOr() Expression {
+	expr := p.BitXor()
 
-	for p.match(TOKEN_PIPE) {
-		operator := p.previous()
-		right := p.bitXor()
+	for p.Match(TOKEN_PIPE) {
+		operator := p.Previous()
+		right := p.BitXor()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) bitXor() Expression {
-	expr := p.bitAnd()
+func (p *Parser) BitXor() Expression {
+	expr := p.BitAnd()
 
-	for p.match(TOKEN_CARET) {
-		operator := p.previous()
-		right := p.bitAnd()
+	for p.Match(TOKEN_CARET) {
+		operator := p.Previous()
+		right := p.BitAnd()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) bitAnd() Expression {
-	expr := p.term()
+func (p *Parser) BitAnd() Expression {
+	expr := p.Term()
 
-	for p.match(TOKEN_AMP) {
-		operator := p.previous()
-		right := p.term()
+	for p.Match(TOKEN_AMP) {
+		operator := p.Previous()
+		right := p.Term()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) term() Expression {
-	expr := p.factor()
+func (p *Parser) Term() Expression {
+	expr := p.Factor()
 
-	for p.match(TOKEN_MINUS, TOKEN_PLUS) {
-		operator := p.previous()
-		right := p.factor()
+	for p.Match(TOKEN_MINUS, TOKEN_PLUS) {
+		operator := p.Previous()
+		right := p.Factor()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) factor() Expression {
-	expr := p.unary()
+func (p *Parser) Factor() Expression {
+	expr := p.Unary()
 
-	for p.match(TOKEN_SLASH, TOKEN_STAR) {
-		operator := p.previous()
-		right := p.unary()
+	for p.Match(TOKEN_SLASH, TOKEN_STAR) {
+		operator := p.Previous()
+		right := p.Unary()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
 	}
 
 	return expr
 }
 
-func (p *Parser) unary() Expression {
-	if p.match(TOKEN_BANG, TOKEN_MINUS) {
-		operator := p.previous()
-		right := p.unary()
+func (p *Parser) Unary() Expression {
+	if p.Match(TOKEN_BANG, TOKEN_MINUS) {
+		operator := p.Previous()
+		right := p.Unary()
 		return &UnaryExpression{operand: right, operator: *operator}
 	}
 
-	return p.primary()
+	return p.Primary()
 }
 
-func (p *Parser) primary() Expression {
-	if p.match(TOKEN_FALSE, TOKEN_TRUE, TOKEN_NIL, TOKEN_INT, TOKEN_FLOAT, TOKEN_STRING) {
-		return &LiteralExpression{value: *p.previous()}
+func (p *Parser) Primary() Expression {
+	if p.Match(TOKEN_FALSE, TOKEN_TRUE, TOKEN_NIL, TOKEN_INT, TOKEN_FLOAT, TOKEN_STRING) {
+		return &LiteralExpression{value: *p.Previous()}
 	}
 
-	if p.match(TOKEN_LEFT_PAREN) {
-		expr := p.expression()
-		p.consume(TOKEN_RIGHT_PAREN, "expected \")\" after expression.")
+	if p.Match(TOKEN_LEFT_PAREN) {
+		expr := p.Expression()
+		p.Consume(TOKEN_RIGHT_PAREN, "expected \")\" after expression.")
 		return &GroupingExpression{expr: expr}
 	}
 
-	token := p.peek()
+	token := p.Peek()
 
 	panic(ErrorData{token.line, token.col, "expected expression"})
 }
 
 // Helpers
 
-func (p *Parser) consume(tokenType TokenType, message string) *Token {
-	token := p.peek()
+func (p *Parser) Consume(tokenType TokenType, message string) *Token {
+	token := p.Peek()
 	if token.tokenType == tokenType {
-		return p.advance()
+		return p.Advance()
 	}
 
 	panic(ErrorData{token.line, token.col, message})
 }
 
-func (p *Parser) match(tokenTypes ...TokenType) bool {
+func (p *Parser) Match(tokenTypes ...TokenType) bool {
 	for _, tokenType := range tokenTypes {
-		if p.check(tokenType) {
-			p.advance()
+		if p.Check(tokenType) {
+			p.Advance()
 			return true
 		}
 	}
 	return false
 }
 
-func (p *Parser) check(tokenType TokenType) bool {
-	if p.isAtEnd() {
+func (p *Parser) Check(tokenType TokenType) bool {
+	if p.IsAtEnd() {
 		return false
 	}
-	return p.peek().tokenType == tokenType
+	return p.Peek().tokenType == tokenType
 }
 
-func (p *Parser) advance() *Token {
-	if !p.isAtEnd() {
+func (p *Parser) Advance() *Token {
+	if !p.IsAtEnd() {
 		p.current++
 	}
-	return p.previous()
+	return p.Previous()
 }
 
-func (p *Parser) isAtEnd() bool {
-	return p.peek().tokenType == TOKEN_EOF
+func (p *Parser) IsAtEnd() bool {
+	return p.Peek().tokenType == TOKEN_EOF
 }
 
-func (p *Parser) peek() *Token {
+func (p *Parser) Peek() *Token {
 	return &p.tokens[p.current]
 }
 
-func (p *Parser) previous() *Token {
+func (p *Parser) Previous() *Token {
 	return &p.tokens[p.current-1]
 }
 
@@ -233,8 +250,8 @@ func Parse(tokens TokenStream, errorReporter ErrorReporter) (Program, error) {
 
 	statements := make(Program, 0)
 
-	for !parser.isAtEnd() {
-		statements = append(statements, parser.statement())
+	for !parser.IsAtEnd() {
+		statements = append(statements, parser.Statement())
 	}
 
 	if errorReporter.HadError() {

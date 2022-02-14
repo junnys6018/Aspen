@@ -45,7 +45,7 @@ func (tc *ParserTestCase) Run(t *testing.T) {
 	case "TYPE EXPRESSION":
 		errorReporter = NewErrorReporter(source)
 		parser := Parser{tokens: tokens, current: 0, errorReporter: errorReporter}
-		expr := parser.expression()
+		expr := parser.Expression()
 		astString = expr.String()
 	}
 
