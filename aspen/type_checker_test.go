@@ -31,6 +31,12 @@ func (tc *TypeCheckerTestCase) Run(t *testing.T) {
 	}
 
 	errors := err.(*AspenError).data
+
+	if len(tc.errors) != len(errors) {
+		t.Errorf("%s: expected len(errors) to be %v got %v", tc.fileName, len(tc.errors), len(errors))
+		return
+	}
+
 	for i, err := range errors {
 		if err != tc.errors[i] {
 			t.Errorf("%s: expected errors[%d] to be %v got %v", tc.fileName, i, tc.errors[i], err)
@@ -55,7 +61,7 @@ func ScanErrorMessage(line string, lineNumber *int, col *int, message *string) {
 	*message = line[end+1:]
 }
 
-func NewTypeCheckerTestCase(file string, t *testing.T) TestCase {
+func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
 	data, err := os.ReadFile(file)
 
 	if err != nil {

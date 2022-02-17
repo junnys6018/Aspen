@@ -154,9 +154,9 @@ func toTokenType(tokenType string) TokenType {
 	case "TOKEN_STRING_LITERAL":
 		return TOKEN_STRING_LITERAL
 	case "TOKEN_FLOAT":
-		return TOKEN_FLOAT
+		return TOKEN_FLOAT_LITERAL
 	case "TOKEN_INT":
-		return TOKEN_INT
+		return TOKEN_INT_LITERAL
 	case "TOKEN_COMMENT":
 		return TOKEN_COMMENT
 	case "TOKEN_ELSE":

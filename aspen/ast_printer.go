@@ -48,6 +48,11 @@ func (p *AstPrinter) VisitLiteral(expr *LiteralExpression) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitIdentifier(expr *IdentifierExpression) interface{} {
+	p.parenthesize(fmt.Sprintf("identifier %s", expr.name))
+	return nil
+}
+
 func (p *AstPrinter) VisitGrouping(expr *GroupingExpression) interface{} {
 	p.parenthesize("group", expr.expr)
 	return nil

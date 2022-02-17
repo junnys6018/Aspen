@@ -2,7 +2,9 @@ package main
 
 import "fmt"
 
-type TypeChecker struct{}
+type TypeChecker struct {
+	environment Environment
+}
 
 func (tc *TypeChecker) EmitError(token Token, message string) {
 	panic(ErrorData{token.line, token.col, message})
@@ -85,9 +87,9 @@ func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
 	switch expr.value.tokenType {
 	case TOKEN_FALSE, TOKEN_TRUE:
 		return SimpleType(TYPE_BOOL)
-	case TOKEN_INT:
+	case TOKEN_INT_LITERAL:
 		return SimpleType(TYPE_I64)
-	case TOKEN_FLOAT:
+	case TOKEN_FLOAT_LITERAL:
 		return SimpleType(TYPE_DOUBLE)
 	case TOKEN_STRING_LITERAL:
 		return SimpleType(TYPE_STRING)
@@ -97,31 +99,63 @@ func (tc *TypeChecker) VisitLiteral(expr *LiteralExpression) interface{} {
 	return nil
 }
 
+func (tc *TypeChecker) VisitIdentifier(expr *IdentifierExpression) interface{} {
+	name := expr.name.String()
+
+	if !tc.environment.IsDefined(name) {
+		tc.EmitError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
+	}
+
+	return tc.environment.Get(name)
+}
+
 func (tc *TypeChecker) VisitGrouping(expr *GroupingExpression) interface{} {
 	return tc.VisitExpressionNode(expr.expr)
 }
 
 func (tc *TypeChecker) VisitExpression(stmt *ExpressionStatement) interface{} {
-	return tc.VisitExpressionNode(stmt.expr)
+	tc.VisitExpressionNode(stmt.expr)
+	return nil
 }
 
 func (tc *TypeChecker) VisitPrint(stmt *PrintStatement) interface{} {
-	return tc.VisitExpressionNode(stmt.expr)
+	tc.VisitExpressionNode(stmt.expr)
+	return nil
 }
 
 func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
+	// Slice and function types must be initialized
 	if stmt.initializer == nil && (stmt.atype.kind == TYPE_SLICE || stmt.atype.kind == TYPE_FUNCTION) {
 		tc.EmitError(stmt.name, fmt.Sprintf("'%s' must be initialized.", stmt.name.value))
 	}
 
-	if stmt.initializer != nil {
+	if stmt.initializer == nil {
+		// Insert a default value for the initializer
+		switch stmt.atype.kind {
+		case TYPE_I64:
+			stmt.initializer = &LiteralExpression{value: Token{tokenType: TOKEN_INT_LITERAL, value: int64(0)}}
+		case TYPE_U64:
+			// todo: set initializer to the expression `u64(0)`
+		case TYPE_BOOL:
+			stmt.initializer = &LiteralExpression{value: Token{tokenType: TOKEN_FALSE}}
+		case TYPE_STRING:
+			stmt.initializer = &LiteralExpression{value: Token{tokenType: TOKEN_STRING_LITERAL, value: []rune("")}}
+		case TYPE_DOUBLE:
+			stmt.initializer = &LiteralExpression{value: Token{tokenType: TOKEN_FLOAT_LITERAL, value: float64(0)}}
+		default:
+			Unreachable("TypeChecker::VisitLet")
+		}
+	} else {
+		// Type check the initializer
 		atype := tc.VisitExpressionNode(stmt.initializer).(*Type)
 		if !TypesEqual(stmt.atype, atype) {
 			tc.EmitError(stmt.name, fmt.Sprintf("cannot assign expression of type %v to '%s', which has type %v.", atype, stmt.name.value, stmt.atype))
 		}
 	}
 
-	return stmt.atype
+	tc.environment.Define(stmt.name.String(), stmt.atype)
+
+	return nil
 }
 
 func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
@@ -141,7 +175,7 @@ func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
 		}
 	}()
 
-	typeChecker := TypeChecker{}
+	typeChecker := TypeChecker{environment: NewEnvironment()}
 
 	for _, stmt := range ast {
 		typeChecker.VisitStatementNode(stmt)

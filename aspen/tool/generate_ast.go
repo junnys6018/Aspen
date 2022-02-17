@@ -129,6 +129,10 @@ func GenerateASTCode() {
 		{"expr", "Expression"},
 	})
 
+	exprNodes.defineNode("Identifier", Fields{
+		{"name", "Token"},
+	})
+
 	exprNodes.defineMethod("Accept", Fields{
 		{"visitor", "ExpressionVisitor"},
 	}, "interface{}", func(w io.Writer, nodeName string) {

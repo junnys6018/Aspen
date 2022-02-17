@@ -1,6 +1,8 @@
 package main
 
-type Interpreter struct{}
+type Interpreter struct {
+	environment Environment
+}
 
 func (i *Interpreter) VisitExpressionNode(expr Expression) interface{} {
 	return expr.Accept(i)
@@ -83,9 +85,9 @@ func (i *Interpreter) VisitLiteral(expr *LiteralExpression) interface{} {
 		return false
 	case TOKEN_TRUE:
 		return true
-	case TOKEN_INT:
+	case TOKEN_INT_LITERAL:
 		return expr.value.value.(int64)
-	case TOKEN_FLOAT:
+	case TOKEN_FLOAT_LITERAL:
 		return expr.value.value.(float64)
 	case TOKEN_STRING_LITERAL:
 		return expr.value.value.([]rune)
@@ -93,6 +95,10 @@ func (i *Interpreter) VisitLiteral(expr *LiteralExpression) interface{} {
 
 	Unreachable("Interpreter::VisitLiteral")
 	return nil
+}
+
+func (i *Interpreter) VisitIdentifier(expr *IdentifierExpression) interface{} {
+	return i.environment.Get(expr.name.String())
 }
 
 func (i *Interpreter) VisitGrouping(expr *GroupingExpression) interface{} {
@@ -111,11 +117,14 @@ func (i *Interpreter) VisitPrint(stmt *PrintStatement) interface{} {
 }
 
 func (i *Interpreter) VisitLet(stmt *LetStatement) interface{} {
-	return nil // todo
+	value := i.VisitExpressionNode(stmt.initializer)
+
+	i.environment.Define(stmt.name.String(), value)
+	return nil
 }
 
 func Interpret(ast Program) (err error) {
-	interpreter := Interpreter{}
+	interpreter := Interpreter{environment: NewEnvironment()}
 
 	for _, stmt := range ast {
 		interpreter.VisitStatementNode(stmt)

@@ -42,8 +42,8 @@ const (
 	// literals
 	TOKEN_IDENTIFIER
 	TOKEN_STRING_LITERAL
-	TOKEN_FLOAT
-	TOKEN_INT
+	TOKEN_FLOAT_LITERAL
+	TOKEN_INT_LITERAL
 	TOKEN_COMMENT
 
 	// keywords
@@ -132,9 +132,9 @@ func (token Token) String() string {
 		return fmt.Sprintf("%v", token.value.(string))
 	case TOKEN_STRING_LITERAL:
 		return fmt.Sprintf("\"%v\"", string(token.value.([]rune)))
-	case TOKEN_FLOAT:
+	case TOKEN_FLOAT_LITERAL:
 		return fmt.Sprintf("%.2f", token.value.(float64))
-	case TOKEN_INT:
+	case TOKEN_INT_LITERAL:
 		return fmt.Sprintf("%d", token.value.(int64))
 	case TOKEN_COMMENT:
 		return "<comment>" // todo
@@ -389,13 +389,13 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 			if err != nil {
 				Unreachable("lexer.go: numberToken()")
 			}
-			tokens = append(tokens, Token{TOKEN_INT, line, oldCol, value})
+			tokens = append(tokens, Token{TOKEN_INT_LITERAL, line, oldCol, value})
 		} else {
 			value, err := strconv.ParseFloat(string(source[start:end]), 64)
 			if err != nil {
 				Unreachable("lexer.go: numberToken()")
 			}
-			tokens = append(tokens, Token{TOKEN_FLOAT, line, oldCol, value})
+			tokens = append(tokens, Token{TOKEN_FLOAT_LITERAL, line, oldCol, value})
 		}
 	}
 

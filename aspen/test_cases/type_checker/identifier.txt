@@ -1,0 +1,5 @@
+/*
+    5:4 invalid operation: operator + is not defined for i64 and string.
+*/
+let foo i64;
+foo+"string";

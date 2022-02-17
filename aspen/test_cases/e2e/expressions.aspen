@@ -1,0 +1,5 @@
+/*Hello, World!
+2
+*/
+print "Hello, World!"; // Hello, World
+print 1+1; // 2

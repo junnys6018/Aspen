@@ -201,7 +201,7 @@ func (p *Parser) Unary() Expression {
 }
 
 func (p *Parser) Primary() Expression {
-	if p.Match(TOKEN_FALSE, TOKEN_TRUE, TOKEN_INT, TOKEN_FLOAT, TOKEN_STRING_LITERAL) {
+	if p.Match(TOKEN_FALSE, TOKEN_TRUE, TOKEN_INT_LITERAL, TOKEN_FLOAT_LITERAL, TOKEN_STRING_LITERAL) {
 		return &LiteralExpression{value: *p.Previous()}
 	}
 
@@ -209,6 +209,10 @@ func (p *Parser) Primary() Expression {
 		expr := p.Expression()
 		p.Consume(TOKEN_RIGHT_PAREN, "expected \")\" after expression.")
 		return &GroupingExpression{expr: expr}
+	}
+
+	if p.Match(TOKEN_IDENTIFIER) {
+		return &IdentifierExpression{name: *p.Previous()}
 	}
 
 	token := p.Peek()
