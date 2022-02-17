@@ -3,7 +3,8 @@ package main
 import "fmt"
 
 type TypeChecker struct {
-	environment Environment
+	environment   Environment
+	errorReporter ErrorReporter
 }
 
 func (tc *TypeChecker) EmitError(token Token, message string) {
@@ -15,7 +16,21 @@ func (tc *TypeChecker) VisitExpressionNode(expr Expression) interface{} {
 }
 
 func (tc *TypeChecker) VisitStatementNode(stmt Statement) interface{} {
-	return stmt.Accept(tc)
+	defer func() {
+		if r := recover(); r != nil {
+			switch v := r.(type) {
+			case ErrorData:
+				// recover from any calls to panic with an argument of type `ErrorData` and push the error to the reporter
+				tc.errorReporter.Push(v.line, v.col, v.message)
+			default:
+				// else re-panic
+				panic(v)
+			}
+		}
+	}()
+
+	stmt.Accept(tc)
+	return nil
 }
 
 func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
@@ -188,26 +203,15 @@ func (tc *TypeChecker) VisitBlock(stmt *BlockStatement) interface{} {
 }
 
 func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			switch v := r.(type) {
-			case ErrorData:
-				// recover from any calls to panic with an argument of type `ErrorData` and push the error to the reporter
-				errorReporter.Push(v.line, v.col, v.message)
-
-				// override the returned error
-				err = errorReporter
-			default:
-				// else re-panic
-				panic(v)
-			}
-		}
-	}()
-
-	typeChecker := TypeChecker{environment: NewEnvironment(nil)}
+	typeChecker := TypeChecker{environment: NewEnvironment(nil), errorReporter: errorReporter}
 
 	for _, stmt := range ast {
 		typeChecker.VisitStatementNode(stmt)
 	}
+
+	if typeChecker.errorReporter.HadError() {
+		return errorReporter
+	}
+
 	return nil
 }

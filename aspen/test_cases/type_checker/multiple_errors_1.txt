@@ -1,0 +1,9 @@
+/*
+    6:2 invalid operation: operator + is not defined for i64 and string.
+    8:1 cannot assign expression of type bool to 'foo', which has type i64.
+    9:1 undeclared identifier 'bar'.
+*/
+1+"string";
+let foo i64;
+foo = false;
+bar = 6;
