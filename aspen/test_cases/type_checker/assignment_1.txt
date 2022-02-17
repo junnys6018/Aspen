@@ -1,0 +1,4 @@
+/*
+    4:1 undeclared identifier 'foo'.
+*/
+foo = 1;

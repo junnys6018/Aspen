@@ -93,6 +93,18 @@ func (p *Parser) LetStatement() Statement {
 // Expressions
 
 func (p *Parser) Expression() Expression {
+	return p.Assignment()
+}
+
+func (p *Parser) Assignment() Expression {
+	if p.Check(TOKEN_IDENTIFIER) && p.CheckNext(TOKEN_EQUAL) {
+		name := p.Consume(TOKEN_IDENTIFIER, "")
+		p.Consume(TOKEN_EQUAL, "")
+		value := p.Assignment()
+
+		return &AssignmentExpression{name: *name, value: value}
+	}
+
 	return p.LogicOr()
 }
 
@@ -336,6 +348,14 @@ func (p *Parser) Check(tokenType TokenType) bool {
 	return p.Peek().tokenType == tokenType
 }
 
+func (p *Parser) CheckNext(tokenType TokenType) bool {
+	if p.IsAtEnd() || p.Next().tokenType == TOKEN_EOF {
+		return false
+	}
+
+	return p.Next().tokenType == tokenType
+}
+
 func (p *Parser) Advance() *Token {
 	if !p.IsAtEnd() {
 		p.current++
@@ -353,6 +373,10 @@ func (p *Parser) Peek() *Token {
 
 func (p *Parser) Previous() *Token {
 	return &p.tokens[p.current-1]
+}
+
+func (p *Parser) Next() *Token {
+	return &p.tokens[p.current+1]
 }
 
 func Parse(tokens TokenStream, errorReporter ErrorReporter) (Program, error) {

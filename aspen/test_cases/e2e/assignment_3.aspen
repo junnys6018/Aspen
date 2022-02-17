@@ -1,0 +1,12 @@
+/*3
+2
+1
+*/
+let a i64;
+let b i64;
+let c i64;
+
+a = 1 + (b = (1 + (c = 1)));
+print a;
+print b;
+print c;

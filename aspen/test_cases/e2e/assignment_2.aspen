@@ -1,0 +1,5 @@
+/*20
+*/
+let foo i64 = 10;
+foo = foo * 2;
+print foo;

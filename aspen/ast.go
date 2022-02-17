@@ -6,6 +6,7 @@ type ExpressionVisitor interface {
 	VisitLiteral(expr *LiteralExpression) interface{}
 	VisitGrouping(expr *GroupingExpression) interface{}
 	VisitIdentifier(expr *IdentifierExpression) interface{}
+	VisitAssignment(expr *AssignmentExpression) interface{}
 }
 type Expression interface {
 	Accept(visitor ExpressionVisitor) interface{}
@@ -74,6 +75,20 @@ func (expr *IdentifierExpression) Accept(visitor ExpressionVisitor) interface{} 
 	return visitor.VisitIdentifier(expr)
 }
 func (expr *IdentifierExpression) String() string {
+	printer := AstPrinter{}
+	printer.VisitExpressionNode(expr)
+	return printer.builder.String()
+}
+
+type AssignmentExpression struct {
+	name  Token
+	value Expression
+}
+
+func (expr *AssignmentExpression) Accept(visitor ExpressionVisitor) interface{} {
+	return visitor.VisitAssignment(expr)
+}
+func (expr *AssignmentExpression) String() string {
 	printer := AstPrinter{}
 	printer.VisitExpressionNode(expr)
 	return printer.builder.String()

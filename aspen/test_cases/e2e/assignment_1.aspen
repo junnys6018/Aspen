@@ -1,0 +1,5 @@
+/*42
+*/
+let foo i64;
+foo = 42;
+print foo;

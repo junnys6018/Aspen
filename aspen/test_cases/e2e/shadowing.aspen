@@ -1,7 +1,7 @@
 /*60
 11
 */
-let volume i64 = 11;
+let volume double = 11.0;
 
 {
     let volume i64 = 3 * 4 * 5;

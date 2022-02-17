@@ -105,6 +105,12 @@ func (i *Interpreter) VisitGrouping(expr *GroupingExpression) interface{} {
 	return i.VisitExpressionNode(expr.expr)
 }
 
+func (i *Interpreter) VisitAssignment(expr *AssignmentExpression) interface{} {
+	value := i.VisitExpressionNode(expr.value)
+	i.environment.Assign(expr.name.String(), value)
+	return value
+}
+
 func (i *Interpreter) VisitExpression(stmt *ExpressionStatement) interface{} {
 	i.VisitExpressionNode(stmt.expr)
 	return nil

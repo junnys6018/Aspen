@@ -1,0 +1,7 @@
+/*3
+*/
+let a i64 = 1;
+{
+    let a i64 = a + 2;
+    print a;
+}

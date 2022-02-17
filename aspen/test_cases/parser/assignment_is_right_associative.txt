@@ -1,0 +1,2 @@
+((expr (= (identifier foo) (= (identifier bar) (identifier baz)))))
+foo = bar = baz;

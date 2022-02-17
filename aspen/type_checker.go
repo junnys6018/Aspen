@@ -113,6 +113,23 @@ func (tc *TypeChecker) VisitGrouping(expr *GroupingExpression) interface{} {
 	return tc.VisitExpressionNode(expr.expr)
 }
 
+func (tc *TypeChecker) VisitAssignment(expr *AssignmentExpression) interface{} {
+	name := expr.name.String()
+
+	if !tc.environment.IsDefined(name) {
+		tc.EmitError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
+	}
+
+	identifierType := tc.environment.Get(name).(*Type)
+	valueType := tc.VisitExpressionNode(expr.value).(*Type)
+
+	if !TypesEqual(identifierType, valueType) {
+		tc.EmitError(expr.name, fmt.Sprintf("cannot assign expression of type %v to '%s', which has type %v.", valueType, name, identifierType))
+	}
+
+	return identifierType
+}
+
 func (tc *TypeChecker) VisitExpression(stmt *ExpressionStatement) interface{} {
 	tc.VisitExpressionNode(stmt.expr)
 	return nil

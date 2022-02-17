@@ -9,6 +9,18 @@ func (e Environment) Define(name string, value interface{}) {
 	e.values[name] = value
 }
 
+func (e Environment) Assign(name string, value interface{}) {
+	_, ok := e.values[name]
+
+	if ok {
+		e.values[name] = value
+	} else if e.enclosing != nil {
+		e.enclosing.Assign(name, value)
+	} else {
+		Unreachable("Environment::Assign")
+	}
+}
+
 func (e Environment) IsDefined(name string) bool {
 	_, ok := e.values[name]
 	if !ok && e.enclosing != nil {

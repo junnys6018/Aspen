@@ -1,0 +1,6 @@
+/*
+    6:1 cannot assign expression of type i64 to 'a', which has type string.
+*/
+let a string;
+let b i64;
+a = b = 3;

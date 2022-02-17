@@ -1,0 +1,5 @@
+/*
+    5:1 cannot assign expression of type string to 'foo', which has type i64.
+*/
+let foo i64;
+foo = "string";

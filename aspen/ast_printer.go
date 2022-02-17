@@ -63,6 +63,11 @@ func (p *AstPrinter) VisitGrouping(expr *GroupingExpression) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitAssignment(expr *AssignmentExpression) interface{} {
+	p.parenthesize(fmt.Sprintf("= (identifier %s)", expr.name), expr.value)
+	return nil
+}
+
 func (p *AstPrinter) VisitExpression(stmt *ExpressionStatement) interface{} {
 	p.parenthesize("expr", stmt.expr)
 	return nil
