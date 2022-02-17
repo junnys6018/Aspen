@@ -83,6 +83,7 @@ type StatementVisitor interface {
 	VisitExpression(stmt *ExpressionStatement) interface{}
 	VisitPrint(stmt *PrintStatement) interface{}
 	VisitLet(stmt *LetStatement) interface{}
+	VisitBlock(stmt *BlockStatement) interface{}
 }
 type Statement interface {
 	Accept(visitor StatementVisitor) interface{}
@@ -124,6 +125,19 @@ func (stmt *LetStatement) Accept(visitor StatementVisitor) interface{} {
 	return visitor.VisitLet(stmt)
 }
 func (stmt *LetStatement) String() string {
+	printer := AstPrinter{}
+	printer.VisitStatementNode(stmt)
+	return printer.builder.String()
+}
+
+type BlockStatement struct {
+	statements []Statement
+}
+
+func (stmt *BlockStatement) Accept(visitor StatementVisitor) interface{} {
+	return visitor.VisitBlock(stmt)
+}
+func (stmt *BlockStatement) String() string {
 	printer := AstPrinter{}
 	printer.VisitStatementNode(stmt)
 	return printer.builder.String()

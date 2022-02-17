@@ -1,0 +1,8 @@
+/*outsideinside
+*/
+
+let global string = "outside";
+{
+    let local string = "inside";
+    print global + local;
+}

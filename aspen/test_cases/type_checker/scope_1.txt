@@ -1,0 +1,7 @@
+/*
+    7:7 undeclared identifier 'foo'.
+*/
+{
+  let foo string = "in block";
+}
+print foo;

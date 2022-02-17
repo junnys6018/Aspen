@@ -47,6 +47,9 @@ func (p *Parser) Statement() Statement {
 	if p.Match(TOKEN_PRINT) {
 		return p.PrintStatement()
 	}
+	if p.Match(TOKEN_LEFT_BRACE) {
+		return p.BlockStatement()
+	}
 	return p.ExpressionStatement()
 }
 
@@ -54,6 +57,17 @@ func (p *Parser) PrintStatement() Statement {
 	expr := p.Expression()
 	p.Consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
 	return &PrintStatement{expr: expr}
+}
+
+func (p *Parser) BlockStatement() Statement {
+	statements := make([]Statement, 0)
+
+	for !p.Check(TOKEN_RIGHT_BRACE) && !p.IsAtEnd() {
+		statements = append(statements, p.Declaration())
+	}
+
+	p.Consume(TOKEN_RIGHT_BRACE, "expected \"}\" after block.")
+	return &BlockStatement{statements: statements}
 }
 
 func (p *Parser) ExpressionStatement() Statement {

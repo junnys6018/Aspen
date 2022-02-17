@@ -1,0 +1,11 @@
+/*60
+11
+*/
+let volume i64 = 11;
+
+{
+    let volume i64 = 3 * 4 * 5;
+    print volume;
+}
+
+print volume;

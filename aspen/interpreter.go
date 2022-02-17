@@ -123,8 +123,20 @@ func (i *Interpreter) VisitLet(stmt *LetStatement) interface{} {
 	return nil
 }
 
+func (i *Interpreter) VisitBlock(stmt *BlockStatement) interface{} {
+	enclosing := i.environment
+	i.environment = NewEnvironment(&enclosing)
+
+	for _, stmt := range stmt.statements {
+		i.VisitStatementNode(stmt)
+	}
+
+	i.environment = enclosing
+	return nil
+}
+
 func Interpret(ast Program) (err error) {
-	interpreter := Interpreter{environment: NewEnvironment()}
+	interpreter := Interpreter{environment: NewEnvironment(nil)}
 
 	for _, stmt := range ast {
 		interpreter.VisitStatementNode(stmt)

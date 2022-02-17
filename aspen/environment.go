@@ -29,6 +29,6 @@ func (e Environment) Get(name string) interface{} {
 	return nil
 }
 
-func NewEnvironment() Environment {
-	return Environment{values: make(map[string]interface{})}
+func NewEnvironment(enclosing *Environment) Environment {
+	return Environment{values: make(map[string]interface{}), enclosing: enclosing}
 }

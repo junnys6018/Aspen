@@ -161,6 +161,10 @@ func GenerateASTCode() {
 		{"atype", "*Type"},
 	})
 
+	stmtNodes.defineNode("Block", Fields{
+		{"statements", "[]Statement"},
+	})
+
 	stmtNodes.defineMethod("Accept", Fields{
 		{"visitor", "StatementVisitor"},
 	}, "interface{}", func(w io.Writer, nodeName string) {

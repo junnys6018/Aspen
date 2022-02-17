@@ -158,6 +158,18 @@ func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
 	return nil
 }
 
+func (tc *TypeChecker) VisitBlock(stmt *BlockStatement) interface{} {
+	enclosing := tc.environment
+	tc.environment = NewEnvironment(&enclosing)
+
+	for _, stmt := range stmt.statements {
+		tc.VisitStatementNode(stmt)
+	}
+
+	tc.environment = enclosing
+	return nil
+}
+
 func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -175,7 +187,7 @@ func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
 		}
 	}()
 
-	typeChecker := TypeChecker{environment: NewEnvironment()}
+	typeChecker := TypeChecker{environment: NewEnvironment(nil)}
 
 	for _, stmt := range ast {
 		typeChecker.VisitStatementNode(stmt)

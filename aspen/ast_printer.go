@@ -17,17 +17,22 @@ func (p *AstPrinter) VisitStatementNode(stmt Statement) {
 	stmt.Accept(p)
 }
 
-func (p *AstPrinter) parenthesize(name string, exprs ...Expression) {
+func (p *AstPrinter) parenthesize(name string, exprOrStmts ...interface{}) {
 	p.builder.WriteRune('(')
 
 	p.builder.WriteString(name)
 
-	for _, expr := range exprs {
-		if expr == nil {
+	for _, exprOrStmt := range exprOrStmts {
+		if exprOrStmt == nil {
 			continue
 		}
 		p.builder.WriteRune(' ')
-		p.VisitExpressionNode(expr)
+		switch exprOrStmt := exprOrStmt.(type) {
+		case Expression:
+			p.VisitExpressionNode(exprOrStmt)
+		case Statement:
+			p.VisitStatementNode(exprOrStmt)
+		}
 	}
 
 	p.builder.WriteRune(')')
@@ -70,6 +75,17 @@ func (p *AstPrinter) VisitPrint(stmt *PrintStatement) interface{} {
 
 func (p *AstPrinter) VisitLet(stmt *LetStatement) interface{} {
 	p.parenthesize(fmt.Sprintf("let %s %s", stmt.name.value, stmt.atype), stmt.initializer)
+	return nil
+}
+
+func (p *AstPrinter) VisitBlock(stmt *BlockStatement) interface{} {
+	// have to convert stmt.statements into a []interface{} to pass into parenthesize...
+	in := make([]interface{}, 0, len(stmt.statements))
+	for _, stmt := range stmt.statements {
+		in = append(in, stmt)
+	}
+
+	p.parenthesize("block", in...)
 	return nil
 }
 
