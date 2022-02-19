@@ -1,0 +1,9 @@
+let a i64 = 0;
+let b i64 = 1;
+
+while (a < 10000) {
+    print a;
+    let temp i64 = a;
+    a = a + b;
+    b = temp;
+}
