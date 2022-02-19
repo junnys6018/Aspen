@@ -1,0 +1,8 @@
+/*
+    6:10 cannot assign expression of type bool to 'i', which has type i64.
+    6:29 invalid operation: operator + is not defined for i64 and bool.
+    6:25 expected an expression of type bool.
+*/
+for (let i i64 = false; 1; 1+false) {
+
+}

@@ -4,13 +4,14 @@ program        → declaration* EOF
 
 declaration    → varDecl | statement
 
-statement      → exprStmt | printStmt | block | ifStmt | whileStmt
+statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt
 
 exprStmt       → expression ";"
 printStmt      → "print" expression ";"
 block          → "{" declaration* "}"
 ifStmt         → "if" "(" expression ")" block ( "else" "if" block )* ( "else" block )?
 whileStmt      → "while" "(" expression ")" block
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression?  ")" block
 
 varDecl        → "let" IDENTIFIER type ( "=" expression )? ";"
 
@@ -40,7 +41,7 @@ arguments      → expression ( "," expression )*
 // Types
 
 type           → function
-function       → "fn(" parameters? ")" (type | "void") | slice
+function       → "fn(" parameters? ")" ( type | "void" ) | slice
 slice          → primitive ("[" "]")*
 primitive      → "i64" | "u64" | "bool" | "string" | "double" | "(" type ")"
 

@@ -1,0 +1,4 @@
+((block (let i i64 0) (while (< (identifier i) 10) (block (expr (identifier i))))))
+for (let i i64 = 0; i < 10;) {
+    i;
+}

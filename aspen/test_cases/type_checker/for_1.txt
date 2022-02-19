@@ -1,0 +1,9 @@
+/*
+    7:5 undeclared identifier 'foo'.
+    8:7 invalid operation: operator + is not defined for i64 and bool.
+*/
+let i i64;
+for (;;) {
+    foo;
+    i + false;
+}

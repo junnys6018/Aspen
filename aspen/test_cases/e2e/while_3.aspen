@@ -1,0 +1,13 @@
+/*good
+good
+good
+good
+good
+*/
+let i i64 = 0;
+let outer string = "bad";
+while (i < 5) {
+    let outer string = "good";
+    print outer;
+    i = i + 1;
+}

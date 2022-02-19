@@ -60,6 +60,10 @@ func (p *Parser) Statement() Statement {
 		return p.WhileStatement()
 	}
 
+	if p.Match(TOKEN_FOR) {
+		return p.ForStatement()
+	}
+
 	return p.ExpressionStatement()
 }
 
@@ -109,6 +113,54 @@ func (p *Parser) WhileStatement() Statement {
 	body := p.BlockStatement()
 
 	return &WhileStatement{condition: expr, body: body, loc: *loc}
+}
+
+func (p *Parser) ForStatement() Statement {
+	p.Consume(TOKEN_LEFT_PAREN, "expected \"(\".")
+
+	var initializer Statement
+	var condition, increment Expression
+
+	if !p.Match(TOKEN_SEMICOLON) {
+		if p.Match(TOKEN_LET) {
+			initializer = p.LetStatement()
+		} else {
+			initializer = p.ExpressionStatement()
+		}
+	}
+
+	loc := p.Peek() // save first token of the condition expression for later
+
+	if !p.Check(TOKEN_SEMICOLON) {
+		condition = p.Expression()
+	}
+	p.Consume(TOKEN_SEMICOLON, "expected \";\".")
+
+	if !p.Check(TOKEN_RIGHT_PAREN) {
+		increment = p.Expression()
+	}
+	p.Consume(TOKEN_RIGHT_PAREN, "expected \")\".")
+
+	p.Consume(TOKEN_LEFT_BRACE, "expected \"{\".")
+	body := p.BlockStatement().(*BlockStatement)
+
+	// desugar into a while loop
+
+	if condition == nil {
+		condition = &LiteralExpression{Token{tokenType: TOKEN_TRUE}}
+	}
+
+	if increment != nil {
+		body.statements = append(body.statements, &ExpressionStatement{increment})
+	}
+
+	while := &WhileStatement{condition: condition, body: body, loc: *loc}
+
+	if initializer == nil {
+		return while
+	} else {
+		return &BlockStatement{statements: []Statement{initializer, while}}
+	}
 }
 
 func (p *Parser) ExpressionStatement() Statement {
