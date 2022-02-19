@@ -1,0 +1,48 @@
+// Statements
+
+program        → declaration* EOF
+
+declaration    → varDecl | statement
+
+statement      → exprStmt | printStmt | block | ifStmt | whileStmt
+
+exprStmt       → expression ";"
+printStmt      → "print" expression ";"
+block          → "{" declaration* "}"
+ifStmt         → "if" "(" expression ")" block ( "else" "if" block )* ( "else" block )?
+whileStmt      → "while" "(" expression ")" block
+
+varDecl        → "let" IDENTIFIER type ( "=" expression )? ";"
+
+// Expressions
+
+expression     → assignment
+
+assignment     → IDENTIFIER "=" assignment | logic_or
+
+logic_or       → logic_and ( "||" logic_and )*
+logic_and      → equality ( "&&" equality )*
+equality       → comparison ( ( "!=" | "==" ) comparison )*
+comparison     → bit_or ( ( ">" | ">=" | "<" | "<=" ) bit_or )*
+bit_or         → bit_xor ( "|" bit_xor )*
+bit_xor        → bit_and ( "^" bit_and )*
+bit_and        → term ( "&" term )*
+term           → factor ( ( "-" | "+" ) factor )*
+factor         → unary ( ( "/" | "*" ) unary )*
+
+unary          → ( "!" | "-" ) unary | call
+call_or_sub    → primary ( "(" arguments? ")" | "[" expression "]" )*
+primary        → "true" | "false" | "nil" |
+               | FLOAT | INT | STRING | IDENTIFIER | "(" expression ")"
+
+arguments      → expression ( "," expression )*
+
+// Types
+
+type           → function
+function       → "fn(" parameters? ")" (type | "void") | slice
+slice          → primitive ("[" "]")*
+primitive      → "i64" | "u64" | "bool" | "string" | "double" | "(" type ")"
+
+
+parameters     → type ( "," type )*
