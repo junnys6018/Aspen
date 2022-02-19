@@ -1,0 +1,2 @@
+((if true (block)))
+if (true) {}

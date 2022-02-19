@@ -47,9 +47,15 @@ func (p *Parser) Statement() Statement {
 	if p.Match(TOKEN_PRINT) {
 		return p.PrintStatement()
 	}
+
 	if p.Match(TOKEN_LEFT_BRACE) {
 		return p.BlockStatement()
 	}
+
+	if p.Match(TOKEN_IF) {
+		return p.IfStatement()
+	}
+
 	return p.ExpressionStatement()
 }
 
@@ -68,6 +74,27 @@ func (p *Parser) BlockStatement() Statement {
 
 	p.Consume(TOKEN_RIGHT_BRACE, "expected \"}\" after block.")
 	return &BlockStatement{statements: statements}
+}
+
+func (p *Parser) IfStatement() Statement {
+	loc := p.Consume(TOKEN_LEFT_PAREN, "expected \"(\".")
+	expr := p.Expression()
+	p.Consume(TOKEN_RIGHT_PAREN, "expected \")\".")
+	p.Consume(TOKEN_LEFT_BRACE, "expected \"{\".")
+	thenBranch := p.BlockStatement()
+
+	var elseBranch Statement
+
+	if p.Match(TOKEN_ELSE) {
+		if p.Match(TOKEN_IF) {
+			elseBranch = p.IfStatement()
+		} else {
+			p.Consume(TOKEN_LEFT_BRACE, "expected \"{\".")
+			elseBranch = p.BlockStatement()
+		}
+	}
+
+	return &IfStatement{condition: expr, thenBranch: thenBranch, elseBranch: elseBranch, loc: *loc}
 }
 
 func (p *Parser) ExpressionStatement() Statement {

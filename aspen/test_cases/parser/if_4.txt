@@ -1,0 +1,2 @@
+((if true (block (expr 1)) (if false (block (expr 2)) (block (expr 3)))))
+if (true) {1;} else if (false) {2;} else {3;}

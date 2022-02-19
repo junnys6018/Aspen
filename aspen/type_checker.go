@@ -202,6 +202,22 @@ func (tc *TypeChecker) VisitBlock(stmt *BlockStatement) interface{} {
 	return nil
 }
 
+func (tc *TypeChecker) VisitIf(stmt *IfStatement) interface{} {
+	// visit the then and else block first
+	tc.VisitStatementNode(stmt.thenBranch)
+	if stmt.elseBranch != nil {
+		tc.VisitStatementNode(stmt.elseBranch)
+	}
+
+	// then type check the condition
+	condition := tc.VisitExpressionNode(stmt.condition).(*Type)
+	if condition.kind != TYPE_BOOL {
+		tc.EmitError(stmt.loc, "expected an expression of type bool.")
+	}
+
+	return nil
+}
+
 func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
 	typeChecker := TypeChecker{environment: NewEnvironment(nil), errorReporter: errorReporter}
 

@@ -1,0 +1,36 @@
+/*
+    10:5 undeclared identifier 'foo'.
+    16:5 undeclared identifier 'foo'.
+    20:5 undeclared identifier 'bar'.
+    22:5 undeclared identifier 'foo'.
+    28:5 undeclared identifier 'foo'.
+    35:9 invalid operation: operator + is not defined for i64 and string.
+*/
+if (true) {
+    foo;
+}
+
+if (true) {
+
+} else {
+    foo;
+}
+
+if (true) {
+    bar;
+} else {
+    foo;
+}
+
+if (true) {
+
+} else if (false) {
+    foo;
+} else {
+
+}
+
+let bar i64;
+if (true) {
+    bar + "string";
+}

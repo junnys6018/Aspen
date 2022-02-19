@@ -1,0 +1,27 @@
+/*
+    8:4 expected an expression of type bool.
+    16:11 expected an expression of type bool.
+    14:11 expected an expression of type bool.
+    24:11 expected an expression of type bool.
+    20:4 expected an expression of type bool.
+*/
+if ("string") {
+
+}
+
+if (true) {
+
+} else if (1) {
+
+} else if (1) {
+
+}
+
+if (1) {
+
+} else if (true) {
+
+} else if (1) {
+
+}
+// TODO: the order of the errors get messed up in this case, fix this

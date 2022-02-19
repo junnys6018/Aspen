@@ -94,6 +94,11 @@ func (p *AstPrinter) VisitBlock(stmt *BlockStatement) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitIf(stmt *IfStatement) interface{} {
+	p.parenthesize("if", stmt.condition, stmt.thenBranch, stmt.elseBranch)
+	return nil
+}
+
 func (program Program) String() string {
 	builder := strings.Builder{}
 	builder.WriteRune('(')

@@ -141,6 +141,18 @@ func (i *Interpreter) VisitBlock(stmt *BlockStatement) interface{} {
 	return nil
 }
 
+func (i *Interpreter) VisitIf(stmt *IfStatement) interface{} {
+	condition := i.VisitExpressionNode(stmt.condition).(bool)
+
+	if condition {
+		i.VisitStatementNode(stmt.thenBranch)
+	} else if stmt.elseBranch != nil {
+		i.VisitStatementNode(stmt.elseBranch)
+	}
+
+	return nil
+}
+
 func Interpret(ast Program) (err error) {
 	interpreter := Interpreter{environment: NewEnvironment(nil)}
 

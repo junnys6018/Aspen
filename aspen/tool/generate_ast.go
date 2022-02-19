@@ -170,6 +170,13 @@ func GenerateASTCode() {
 		{"statements", "[]Statement"},
 	})
 
+	stmtNodes.defineNode("If", Fields{
+		{"condition", "Expression"},
+		{"thenBranch", "Statement"},
+		{"elseBranch", "Statement"},
+		{"loc", "Token"},
+	})
+
 	stmtNodes.defineMethod("Accept", Fields{
 		{"visitor", "StatementVisitor"},
 	}, "interface{}", func(w io.Writer, nodeName string) {
