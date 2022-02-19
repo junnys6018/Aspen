@@ -99,6 +99,11 @@ func (p *AstPrinter) VisitIf(stmt *IfStatement) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitWhile(stmt *WhileStatement) interface{} {
+	p.parenthesize("while", stmt.condition, stmt.body)
+	return nil
+}
+
 func (program Program) String() string {
 	builder := strings.Builder{}
 	builder.WriteRune('(')

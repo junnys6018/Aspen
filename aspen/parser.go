@@ -56,6 +56,10 @@ func (p *Parser) Statement() Statement {
 		return p.IfStatement()
 	}
 
+	if p.Match(TOKEN_WHILE) {
+		return p.WhileStatement()
+	}
+
 	return p.ExpressionStatement()
 }
 
@@ -95,6 +99,16 @@ func (p *Parser) IfStatement() Statement {
 	}
 
 	return &IfStatement{condition: expr, thenBranch: thenBranch, elseBranch: elseBranch, loc: *loc}
+}
+
+func (p *Parser) WhileStatement() Statement {
+	loc := p.Consume(TOKEN_LEFT_PAREN, "expected \"(\".")
+	expr := p.Expression()
+	p.Consume(TOKEN_RIGHT_PAREN, "expected \")\".")
+	p.Consume(TOKEN_LEFT_BRACE, "expected \"{\".")
+	body := p.BlockStatement()
+
+	return &WhileStatement{condition: expr, body: body, loc: *loc}
 }
 
 func (p *Parser) ExpressionStatement() Statement {

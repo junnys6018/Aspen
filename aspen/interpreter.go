@@ -153,6 +153,13 @@ func (i *Interpreter) VisitIf(stmt *IfStatement) interface{} {
 	return nil
 }
 
+func (i *Interpreter) VisitWhile(stmt *WhileStatement) interface{} {
+	for i.VisitExpressionNode(stmt.condition).(bool) {
+		i.VisitStatementNode(stmt.body)
+	}
+	return nil
+}
+
 func Interpret(ast Program) (err error) {
 	interpreter := Interpreter{environment: NewEnvironment(nil)}
 

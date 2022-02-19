@@ -1,0 +1,5 @@
+/*
+    4:7 undeclared identifier 'foo'.
+*/
+print foo;
+let foo i64;

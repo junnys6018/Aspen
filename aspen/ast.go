@@ -100,6 +100,7 @@ type StatementVisitor interface {
 	VisitLet(stmt *LetStatement) interface{}
 	VisitBlock(stmt *BlockStatement) interface{}
 	VisitIf(stmt *IfStatement) interface{}
+	VisitWhile(stmt *WhileStatement) interface{}
 }
 type Statement interface {
 	Accept(visitor StatementVisitor) interface{}
@@ -170,6 +171,21 @@ func (stmt *IfStatement) Accept(visitor StatementVisitor) interface{} {
 	return visitor.VisitIf(stmt)
 }
 func (stmt *IfStatement) String() string {
+	printer := AstPrinter{}
+	printer.VisitStatementNode(stmt)
+	return printer.builder.String()
+}
+
+type WhileStatement struct {
+	condition Expression
+	body      Statement
+	loc       Token
+}
+
+func (stmt *WhileStatement) Accept(visitor StatementVisitor) interface{} {
+	return visitor.VisitWhile(stmt)
+}
+func (stmt *WhileStatement) String() string {
 	printer := AstPrinter{}
 	printer.VisitStatementNode(stmt)
 	return printer.builder.String()

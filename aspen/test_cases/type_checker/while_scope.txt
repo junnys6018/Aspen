@@ -1,0 +1,12 @@
+/*
+    6:5 undeclared identifier 'foo'.
+    11:9 invalid operation: operator + is not defined for i64 and string.
+*/
+while (true) {
+    foo;
+}
+
+let bar i64;
+while (true) {
+    bar + "string";
+}
