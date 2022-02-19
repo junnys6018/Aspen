@@ -200,3 +200,15 @@ func OperatorStar(lhs, rhs interface{}) interface{} {
 	Unreachable("value.go: OperatorStar")
 	return nil
 }
+func OperatorModulus(lhs, rhs interface{}) interface{} {
+	switch lhsV := lhs.(type) {
+	case int64:
+		rhsV := rhs.(int64)
+		return lhsV % rhsV
+	case uint64:
+		rhsV := rhs.(uint64)
+		return lhsV % rhsV
+	}
+	Unreachable("value.go: OperatorModulus")
+	return nil
+}

@@ -125,6 +125,8 @@ func toTokenType(tokenType string) TokenType {
 		return TOKEN_STAR
 	case "TOKEN_CARET":
 		return TOKEN_CARET
+	case "TOKEN_PERCENT":
+		return TOKEN_PERCENT
 	case "TOKEN_BANG":
 		return TOKEN_BANG
 	case "TOKEN_BANG_EQUAL":

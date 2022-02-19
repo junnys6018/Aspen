@@ -37,6 +37,8 @@ func (i *Interpreter) VisitBinary(expr *BinaryExpression) interface{} {
 		return OperatorPipe(lhs, rhs)
 	case TOKEN_CARET:
 		return OperatorCaret(lhs, rhs)
+	case TOKEN_PERCENT:
+		return OperatorModulus(lhs, rhs)
 	case TOKEN_AMP:
 		return OperatorAmp(lhs, rhs)
 	case TOKEN_MINUS:

@@ -29,7 +29,7 @@ bit_or         → bit_xor ( "|" bit_xor )*
 bit_xor        → bit_and ( "^" bit_and )*
 bit_and        → term ( "&" term )*
 term           → factor ( ( "-" | "+" ) factor )*
-factor         → unary ( ( "/" | "*" ) unary )*
+factor         → unary ( ( "/" | "*" | "%" ) unary )*
 
 unary          → ( "!" | "-" ) unary | call
 call_or_sub    → primary ( "(" arguments? ")" | "[" expression "]" )*

@@ -24,6 +24,7 @@ const (
 	TOKEN_SLASH
 	TOKEN_STAR
 	TOKEN_CARET
+	TOKEN_PERCENT
 
 	// one or two character tokens
 	TOKEN_BANG
@@ -104,6 +105,8 @@ func (token Token) String() string {
 		return "*"
 	case TOKEN_CARET:
 		return "^"
+	case TOKEN_PERCENT:
+		return "%"
 	case TOKEN_BANG:
 		return "!"
 	case TOKEN_BANG_EQUAL:
@@ -472,6 +475,9 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 			col++
 		case '^':
 			simpleToken(TOKEN_CARET)
+			col++
+		case '%':
+			simpleToken(TOKEN_PERCENT)
 			col++
 		case '/':
 			if match('/') {

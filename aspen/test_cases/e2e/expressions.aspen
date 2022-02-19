@@ -22,6 +22,7 @@ true
 0
 0
 4
+2
 */
 print "Hello, World!";
 print 1+1;
@@ -47,3 +48,4 @@ print 1 -1;
 print 1- 1;
 print 1-1;
 print (2 * (6 - (2 + 2)));
+print 2396 % 7;

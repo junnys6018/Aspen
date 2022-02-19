@@ -61,7 +61,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 	case TOKEN_GREATER, TOKEN_GREATER_EQUAL, TOKEN_LESS, TOKEN_LESS_EQUAL:
 		check(bothNumeric())
 		return SimpleType(TYPE_BOOL)
-	case TOKEN_PIPE, TOKEN_CARET, TOKEN_AMP:
+	case TOKEN_PIPE, TOKEN_CARET, TOKEN_AMP, TOKEN_PERCENT:
 		check(bothIntegral())
 		return leftType
 	case TOKEN_MINUS, TOKEN_SLASH, TOKEN_STAR:

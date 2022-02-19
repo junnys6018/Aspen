@@ -101,6 +101,7 @@ func GenerateValueCode() {
 	writeBinaryOperatorFunction(file, "+", "OperatorPlus", true)
 	writeBinaryOperatorFunction(file, "/", "OperatorSlash", true)
 	writeBinaryOperatorFunction(file, "*", "OperatorStar", true)
+	writeBinaryOperatorFunction(file, "%", "OperatorModulus", false)
 
 	cmd := exec.Command("go", "fmt", path)
 	err = cmd.Run()

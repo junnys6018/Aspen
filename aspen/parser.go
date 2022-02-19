@@ -300,7 +300,7 @@ func (p *Parser) Term() Expression {
 func (p *Parser) Factor() Expression {
 	expr := p.Unary()
 
-	for p.Match(TOKEN_SLASH, TOKEN_STAR) {
+	for p.Match(TOKEN_SLASH, TOKEN_STAR, TOKEN_PERCENT) {
 		operator := p.Previous()
 		right := p.Unary()
 		expr = &BinaryExpression{left: expr, right: right, operator: *operator}
