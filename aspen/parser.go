@@ -316,7 +316,31 @@ func (p *Parser) Unary() Expression {
 		return &UnaryExpression{operand: right, operator: *operator}
 	}
 
-	return p.Primary()
+	return p.CallOrSubscript()
+}
+
+func (p *Parser) CallOrSubscript() Expression {
+	callee := p.Primary()
+
+	for p.Match(TOKEN_LEFT_PAREN) {
+		callee = p.Arguments(callee)
+	}
+
+	return callee
+}
+
+func (p *Parser) Arguments(callee Expression) Expression {
+	arguments := make([]Expression, 0)
+	if !p.Check(TOKEN_RIGHT_PAREN) {
+		arguments = append(arguments, p.Expression())
+		for p.Match(TOKEN_COMMA) {
+			arguments = append(arguments, p.Expression())
+		}
+	}
+
+	loc := p.Consume(TOKEN_RIGHT_PAREN, "expected \")\".")
+
+	return &CallExpression{callee: callee, arguments: arguments, loc: *loc}
 }
 
 func (p *Parser) Primary() Expression {

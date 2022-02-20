@@ -5,6 +5,17 @@ type Environment struct {
 	values    map[string]interface{}
 }
 
+func NewGlobalEnvironment() Environment {
+	environment := NewEnvironment(nil)
+
+	// copy native functions into global environment
+	for k, v := range NativeFunctions {
+		environment.values[k] = v
+	}
+
+	return environment
+}
+
 func (e Environment) Define(name string, value interface{}) {
 	e.values[name] = value
 }

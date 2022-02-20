@@ -48,3 +48,18 @@ func AddString(lhs, rhs []rune) []rune {
 	new = append(new, rhs...)
 	return new
 }
+
+func OrdinalSuffixOf(i int) string {
+	j := i % 10
+	k := i % 100
+	if j == 1 && k != 11 {
+		return fmt.Sprintf("%dst", i)
+	}
+	if j == 2 && k != 12 {
+		return fmt.Sprintf("%dnd", i)
+	}
+	if j == 3 && k != 13 {
+		return fmt.Sprintf("%drd", i)
+	}
+	return fmt.Sprintf("%dth", i)
+}

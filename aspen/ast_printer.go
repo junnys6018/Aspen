@@ -68,6 +68,17 @@ func (p *AstPrinter) VisitAssignment(expr *AssignmentExpression) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitCall(expr *CallExpression) interface{} {
+	in := make([]interface{}, len(expr.arguments)+1)
+	in[0] = expr.callee
+	for i, arg := range expr.arguments {
+		in[i+1] = arg
+	}
+
+	p.parenthesize("call", in...)
+	return nil
+}
+
 func (p *AstPrinter) VisitExpression(stmt *ExpressionStatement) interface{} {
 	p.parenthesize("expr", stmt.expr)
 	return nil
@@ -85,9 +96,9 @@ func (p *AstPrinter) VisitLet(stmt *LetStatement) interface{} {
 
 func (p *AstPrinter) VisitBlock(stmt *BlockStatement) interface{} {
 	// have to convert stmt.statements into a []interface{} to pass into parenthesize...
-	in := make([]interface{}, 0, len(stmt.statements))
-	for _, stmt := range stmt.statements {
-		in = append(in, stmt)
+	in := make([]interface{}, len(stmt.statements))
+	for i, stmt := range stmt.statements {
+		in[i] = stmt
 	}
 
 	p.parenthesize("block", in...)

@@ -113,6 +113,17 @@ func (i *Interpreter) VisitAssignment(expr *AssignmentExpression) interface{} {
 	return value
 }
 
+func (i *Interpreter) VisitCall(expr *CallExpression) interface{} {
+	callee := i.VisitExpressionNode(expr.callee).(AspenFunction)
+
+	arguments := make([]interface{}, callee.Arity())
+	for j := range arguments {
+		arguments[j] = i.VisitExpressionNode(expr.arguments[j])
+	}
+
+	return callee.Call(arguments)
+}
+
 func (i *Interpreter) VisitExpression(stmt *ExpressionStatement) interface{} {
 	i.VisitExpressionNode(stmt.expr)
 	return nil
@@ -163,7 +174,7 @@ func (i *Interpreter) VisitWhile(stmt *WhileStatement) interface{} {
 }
 
 func Interpret(ast Program) (err error) {
-	interpreter := Interpreter{environment: NewEnvironment(nil)}
+	interpreter := Interpreter{environment: NewGlobalEnvironment()}
 
 	for _, stmt := range ast {
 		interpreter.VisitStatementNode(stmt)

@@ -1,0 +1,5 @@
+/*__TESTFN__(hello)
+__TESTFN__(__TESTFN__(recursion))
+*/
+print __TESTFN__("hello");
+print __TESTFN__(__TESTFN__("recursion"));

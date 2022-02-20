@@ -1,0 +1,8 @@
+/*
+    6:19 too many arguments in call to function.
+    7:12 not enough arguments in call to function.
+    8:17 cannot use argument of type bool as the 1st parameter to function call (expected string).
+*/
+__TESTFN__(1, 2, 3);
+__TESTFN__();
+__TESTFN__(false);

@@ -1,0 +1,4 @@
+/*__TESTFN__(hello)
+*/
+let foo fn(string)string = __TESTFN__;
+print foo("hello");

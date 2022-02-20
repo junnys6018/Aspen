@@ -7,8 +7,12 @@ type TypeChecker struct {
 	errorReporter ErrorReporter
 }
 
-func (tc *TypeChecker) EmitError(token Token, message string) {
+func (tc *TypeChecker) FatalError(token Token, message string) {
 	panic(ErrorData{token.line, token.col, message})
+}
+
+func (tc *TypeChecker) Error(token Token, message string) {
+	tc.errorReporter.Push(token.line, token.col, message)
 }
 
 func (tc *TypeChecker) VisitExpressionNode(expr Expression) interface{} {
@@ -39,7 +43,7 @@ func (tc *TypeChecker) VisitBinary(expr *BinaryExpression) interface{} {
 
 	check := func(condition bool) {
 		if !condition {
-			tc.EmitError(expr.operator, fmt.Sprintf("invalid operation: operator %v is not defined for %v and %v.", expr.operator, leftType, rightType))
+			tc.FatalError(expr.operator, fmt.Sprintf("invalid operation: operator %v is not defined for %v and %v.", expr.operator, leftType, rightType))
 		}
 	}
 
@@ -81,7 +85,7 @@ func (tc *TypeChecker) VisitUnary(expr *UnaryExpression) interface{} {
 
 	check := func(condition bool) {
 		if !condition {
-			tc.EmitError(expr.operator, fmt.Sprintf("invalid operation: operator %v is not defined for %v.", expr.operator, operandType))
+			tc.FatalError(expr.operator, fmt.Sprintf("invalid operation: operator %v is not defined for %v.", expr.operator, operandType))
 		}
 	}
 
@@ -118,7 +122,7 @@ func (tc *TypeChecker) VisitIdentifier(expr *IdentifierExpression) interface{} {
 	name := expr.name.String()
 
 	if !tc.environment.IsDefined(name) {
-		tc.EmitError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
+		tc.FatalError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
 	}
 
 	return tc.environment.Get(name)
@@ -132,17 +136,49 @@ func (tc *TypeChecker) VisitAssignment(expr *AssignmentExpression) interface{} {
 	name := expr.name.String()
 
 	if !tc.environment.IsDefined(name) {
-		tc.EmitError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
+		tc.FatalError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
 	}
 
 	identifierType := tc.environment.Get(name).(*Type)
 	valueType := tc.VisitExpressionNode(expr.value).(*Type)
 
 	if !TypesEqual(identifierType, valueType) {
-		tc.EmitError(expr.name, fmt.Sprintf("cannot assign expression of type %v to '%s', which has type %v.", valueType, name, identifierType))
+		tc.FatalError(expr.name, fmt.Sprintf("cannot assign expression of type %v to '%s', which has type %v.", valueType, name, identifierType))
 	}
 
 	return identifierType
+}
+
+func (tc *TypeChecker) VisitCall(expr *CallExpression) interface{} {
+	callee := tc.VisitExpressionNode(expr.callee).(*Type)
+
+	if callee.kind != TYPE_FUNCTION {
+		tc.FatalError(expr.loc, "callee is not a function.")
+	}
+
+	other := callee.other.(FunctionType)
+
+	// check arity
+	if len(expr.arguments) != other.Arity() {
+		if len(expr.arguments) < other.Arity() {
+			tc.FatalError(expr.loc, "not enough arguments in call to function.")
+		} else {
+			tc.FatalError(expr.loc, "too many arguments in call to function.")
+		}
+	}
+
+	for i := range expr.arguments {
+		arg := tc.VisitExpressionNode(expr.arguments[i]).(*Type)
+		if !TypesEqual(arg, other.parameters[i]) {
+			tc.Error(expr.loc,
+				fmt.Sprintf("cannot use argument of type %v as the %s parameter to function call (expected %v).",
+					arg,
+					OrdinalSuffixOf(i+1),
+					other.parameters[i]))
+		}
+	}
+
+	return other.returnType
 }
 
 func (tc *TypeChecker) VisitExpression(stmt *ExpressionStatement) interface{} {
@@ -158,7 +194,7 @@ func (tc *TypeChecker) VisitPrint(stmt *PrintStatement) interface{} {
 func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
 	// Slice and function types must be initialized
 	if stmt.initializer == nil && (stmt.atype.kind == TYPE_SLICE || stmt.atype.kind == TYPE_FUNCTION) {
-		tc.EmitError(stmt.name, fmt.Sprintf("'%s' must be initialized.", stmt.name.value))
+		tc.FatalError(stmt.name, fmt.Sprintf("'%s' must be initialized.", stmt.name.value))
 	}
 
 	if stmt.initializer == nil {
@@ -181,7 +217,7 @@ func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
 		// Type check the initializer
 		atype := tc.VisitExpressionNode(stmt.initializer).(*Type)
 		if !TypesEqual(stmt.atype, atype) {
-			tc.EmitError(stmt.name, fmt.Sprintf("cannot assign expression of type %v to '%s', which has type %v.", atype, stmt.name.value, stmt.atype))
+			tc.FatalError(stmt.name, fmt.Sprintf("cannot assign expression of type %v to '%s', which has type %v.", atype, stmt.name.value, stmt.atype))
 		}
 	}
 
@@ -212,7 +248,7 @@ func (tc *TypeChecker) VisitIf(stmt *IfStatement) interface{} {
 	// then type check the condition
 	condition := tc.VisitExpressionNode(stmt.condition).(*Type)
 	if condition.kind != TYPE_BOOL {
-		tc.EmitError(stmt.loc, "expected an expression of type bool.")
+		tc.FatalError(stmt.loc, "expected an expression of type bool.")
 	}
 
 	return nil
@@ -223,13 +259,21 @@ func (tc *TypeChecker) VisitWhile(stmt *WhileStatement) interface{} {
 
 	condition := tc.VisitExpressionNode(stmt.condition).(*Type)
 	if condition.kind != TYPE_BOOL {
-		tc.EmitError(stmt.loc, "expected an expression of type bool.")
+		tc.FatalError(stmt.loc, "expected an expression of type bool.")
 	}
 	return nil
 }
 
 func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
-	typeChecker := TypeChecker{environment: NewEnvironment(nil), errorReporter: errorReporter}
+	// initialize global environment
+	environment := NewEnvironment(nil)
+
+	// copy native functions into global environment
+	for k, v := range NativeFunctions {
+		environment.values[k] = &Type{kind: TYPE_FUNCTION, other: v.atype}
+	}
+
+	typeChecker := TypeChecker{environment: environment, errorReporter: errorReporter}
 
 	for _, stmt := range ast {
 		typeChecker.VisitStatementNode(stmt)

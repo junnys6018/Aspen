@@ -1,0 +1,4 @@
+/*
+    4:5 cannot assign expression of type fn(string)string to 'foo', which has type fn()void.
+*/
+let foo fn()void = __TESTFN__;

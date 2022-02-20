@@ -110,6 +110,7 @@ func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
 }
 
 func TestTypeChecker(t *testing.T) {
+	Initialize()
 	matches, err := filepath.Glob("test_cases/type_checker/*.txt")
 
 	if err != nil {

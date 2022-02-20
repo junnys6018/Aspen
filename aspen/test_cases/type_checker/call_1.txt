@@ -1,0 +1,4 @@
+/*
+    4:25 callee is not a function.
+*/
+"not a function"(1, 2, 3);

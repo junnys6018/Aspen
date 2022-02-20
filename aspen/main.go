@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 type Program []Statement
@@ -112,7 +113,21 @@ func Check(err error) {
 	}
 }
 
+func Initialize() {
+	start := time.Now()
+	DefineNativeFunction(FunctionType{returnType: SimpleType(TYPE_I64), parameters: []*Type{}}, "clock", func(args []interface{}) interface{} {
+		return time.Since(start).Microseconds()
+	})
+
+	DefineNativeFunction(FunctionType{returnType: SimpleType(TYPE_STRING), parameters: []*Type{SimpleType(TYPE_STRING)}}, "__TESTFN__", func(args []interface{}) interface{} {
+		arg0 := args[0].([]rune)
+		return []rune(fmt.Sprintf("__TESTFN__(%s)", string(arg0)))
+	})
+}
+
 func main() {
+	Initialize()
+
 	if len(os.Args) == 2 {
 		path := os.Args[1]
 
