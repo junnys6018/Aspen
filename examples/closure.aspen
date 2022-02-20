@@ -1,0 +1,13 @@
+fn makeCounter() fn()void {
+    let i i64 = 0;
+    fn count() void {
+        i = i + 1;
+        print i;
+    }
+    return count;
+}
+
+let counter fn()void = makeCounter();
+counter();
+counter();
+counter();

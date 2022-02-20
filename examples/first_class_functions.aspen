@@ -1,0 +1,11 @@
+fn list(generator fn(i64)i64, n i64) void {
+    for (let i i64 = 0; i <= n; i = i + 1) {
+        print generator(i);
+    }
+}
+
+fn square(n i64) i64 {
+    return n * n;
+}
+
+list(square, 10);
