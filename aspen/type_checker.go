@@ -278,20 +278,38 @@ func (tc *TypeChecker) VisitWhile(stmt *WhileStatement) interface{} {
 	return nil
 }
 
-func (tc *TypeChecker) VisitFunction(stmt *FunctionStatement) interface{} {
-	enclosing := tc.environment
-
+func (tc *TypeChecker) DefineFunction(stmt *FunctionStatement) {
 	name := stmt.name.String()
-	if enclosing.IsDefinedLocally(name) {
-		tc.FatalError(stmt.name, fmt.Sprintf("cannot redefine '%s'.", name))
+	if tc.environment.IsDefinedLocally(name) {
+		tc.Error(stmt.name, fmt.Sprintf("cannot redefine '%s'.", name))
 	}
 
-	enclosing.Define(name, &Type{kind: TYPE_FUNCTION, other: stmt.atype})
+	tc.environment.Define(name, &Type{kind: TYPE_FUNCTION, other: stmt.atype})
+}
 
+func (tc *TypeChecker) VisitFunction(stmt *FunctionStatement) interface{} {
+	if tc.currentFunction != nil {
+		// global functions were defined in the first pass
+		tc.DefineFunction(stmt)
+	}
+
+	enclosing := tc.environment
 	environment := NewEnvironment(&enclosing)
 
 	for i := range stmt.parameters {
 		environment.Define(stmt.parameters[i].String(), stmt.atype.parameters[i])
+	}
+
+	if !stmt.atype.returnType.IsVoid() {
+		// check that the last statement in the body of the function is a return statement
+		if len(stmt.body.statements) == 0 {
+			tc.Error(stmt.name, "missing return.")
+		} else {
+			_, ok := stmt.body.statements[len(stmt.body.statements)-1].(*ReturnStatement)
+			if !ok {
+				tc.Error(stmt.name, "missing return.")
+			}
+		}
 	}
 
 	enclosingFn := tc.currentFunction
@@ -335,6 +353,15 @@ func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
 	}
 
 	typeChecker := TypeChecker{environment: environment, errorReporter: errorReporter}
+
+	// first pass: define global functions
+	for _, stmt := range ast {
+		fnDecl, ok := stmt.(*FunctionStatement)
+		if ok {
+			typeChecker.DefineFunction(fnDecl)
+		}
+
+	}
 
 	for _, stmt := range ast {
 		typeChecker.VisitStatementNode(stmt)

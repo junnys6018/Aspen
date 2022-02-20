@@ -1,0 +1,13 @@
+/*global
+global
+*/
+let a string = "global";
+{
+    fn showA() void {
+        print a;
+    }
+
+    showA();
+    let a string = "block";
+    showA();
+}

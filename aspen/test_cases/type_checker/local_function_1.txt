@@ -1,0 +1,10 @@
+/*
+    9:13 invalid operation: operator + is not defined for string and i64.
+*/
+fn outer() void {
+    fn inner() string {
+        return "";
+    }
+
+    inner() + 1;
+}
