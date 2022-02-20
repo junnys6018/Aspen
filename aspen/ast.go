@@ -117,6 +117,8 @@ type StatementVisitor interface {
 	VisitBlock(stmt *BlockStatement) interface{}
 	VisitIf(stmt *IfStatement) interface{}
 	VisitWhile(stmt *WhileStatement) interface{}
+	VisitFunction(stmt *FunctionStatement) interface{}
+	VisitReturn(stmt *ReturnStatement) interface{}
 }
 type Statement interface {
 	Accept(visitor StatementVisitor) interface{}
@@ -137,6 +139,7 @@ func (stmt *ExpressionStatement) String() string {
 
 type PrintStatement struct {
 	expr Expression
+	loc  Token
 }
 
 func (stmt *PrintStatement) Accept(visitor StatementVisitor) interface{} {
@@ -202,6 +205,36 @@ func (stmt *WhileStatement) Accept(visitor StatementVisitor) interface{} {
 	return visitor.VisitWhile(stmt)
 }
 func (stmt *WhileStatement) String() string {
+	printer := AstPrinter{}
+	printer.VisitStatementNode(stmt)
+	return printer.builder.String()
+}
+
+type FunctionStatement struct {
+	name       Token
+	parameters []Token
+	body       *BlockStatement
+	atype      FunctionType
+}
+
+func (stmt *FunctionStatement) Accept(visitor StatementVisitor) interface{} {
+	return visitor.VisitFunction(stmt)
+}
+func (stmt *FunctionStatement) String() string {
+	printer := AstPrinter{}
+	printer.VisitStatementNode(stmt)
+	return printer.builder.String()
+}
+
+type ReturnStatement struct {
+	value Expression
+	loc   Token
+}
+
+func (stmt *ReturnStatement) Accept(visitor StatementVisitor) interface{} {
+	return visitor.VisitReturn(stmt)
+}
+func (stmt *ReturnStatement) String() string {
 	printer := AstPrinter{}
 	printer.VisitStatementNode(stmt)
 	return printer.builder.String()

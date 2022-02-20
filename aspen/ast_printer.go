@@ -95,13 +95,7 @@ func (p *AstPrinter) VisitLet(stmt *LetStatement) interface{} {
 }
 
 func (p *AstPrinter) VisitBlock(stmt *BlockStatement) interface{} {
-	// have to convert stmt.statements into a []interface{} to pass into parenthesize...
-	in := make([]interface{}, len(stmt.statements))
-	for i, stmt := range stmt.statements {
-		in[i] = stmt
-	}
-
-	p.parenthesize("block", in...)
+	p.parenthesize("block", ConvertStatementList(stmt.statements)...)
 	return nil
 }
 
@@ -112,6 +106,27 @@ func (p *AstPrinter) VisitIf(stmt *IfStatement) interface{} {
 
 func (p *AstPrinter) VisitWhile(stmt *WhileStatement) interface{} {
 	p.parenthesize("while", stmt.condition, stmt.body)
+	return nil
+}
+
+func (p *AstPrinter) VisitFunction(stmt *FunctionStatement) interface{} {
+	builder := strings.Builder{}
+
+	fmt.Fprintf(&builder, "fn %s ", stmt.name)
+
+	fmt.Fprintf(&builder, "(return %v)", stmt.atype.returnType)
+
+	for i := range stmt.parameters {
+		builder.WriteRune(' ')
+		fmt.Fprintf(&builder, "(param %v %v)", stmt.parameters[i], stmt.atype.parameters[i])
+	}
+
+	p.parenthesize(builder.String(), ConvertStatementList(stmt.body.statements)...)
+	return nil
+}
+
+func (p *AstPrinter) VisitReturn(stmt *ReturnStatement) interface{} {
+	p.parenthesize("return", stmt.value)
 	return nil
 }
 
@@ -126,4 +141,13 @@ func (program Program) String() string {
 	}
 	builder.WriteRune(')')
 	return builder.String()
+}
+
+func ConvertStatementList(stmts []Statement) []interface{} {
+	ret := make([]interface{}, len(stmts))
+	for i, stmt := range stmts {
+		ret[i] = stmt
+	}
+
+	return ret
 }

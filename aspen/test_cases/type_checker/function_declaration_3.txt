@@ -1,0 +1,12 @@
+/*
+    10:9 too many arguments in call to function.
+    11:5 not enough arguments in call to function.
+    12:10 cannot use argument of type bool as the 1st parameter to function call (expected i64).
+*/
+fn foo(i i64) void {
+
+}
+
+foo(1, 1);
+foo();
+foo(false);

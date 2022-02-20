@@ -1,0 +1,12 @@
+/*hello
+world
+*/
+let foo string = "hello";
+
+fn changeFoo() void {
+    foo = "world";
+}
+
+print foo;
+changeFoo();
+print foo;

@@ -68,6 +68,10 @@ type Type struct {
 	other interface{} // is either nil, or contains a `SliceType` or `FunctionType`
 }
 
+func (t Type) IsVoid() bool {
+	return t.kind == TYPE_VOID
+}
+
 func (t Type) String() string {
 	switch t.kind {
 	case TYPE_I64, TYPE_U64, TYPE_BOOL, TYPE_STRING, TYPE_DOUBLE, TYPE_VOID:
@@ -110,7 +114,7 @@ func TypesEqual(t1, t2 *Type) bool {
 	}
 
 	switch t1.kind {
-	case TYPE_I64, TYPE_U64, TYPE_BOOL, TYPE_STRING, TYPE_DOUBLE:
+	case TYPE_I64, TYPE_U64, TYPE_BOOL, TYPE_STRING, TYPE_DOUBLE, TYPE_VOID:
 		return true
 	case TYPE_SLICE:
 		other1 := t1.other.(SliceType)

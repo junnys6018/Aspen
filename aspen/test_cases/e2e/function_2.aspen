@@ -1,0 +1,14 @@
+/*1
+2
+3
+4
+5
+9
+12
+*/
+fn echo(n i64) i64 {
+    print n;
+    return n;
+}
+
+print echo(echo(1) + echo(2)) + echo(echo(4) + echo(5));

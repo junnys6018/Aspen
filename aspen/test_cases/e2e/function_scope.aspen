@@ -1,0 +1,10 @@
+/*global
+*/
+fn foo() void {
+    let s string = "local";
+    return;
+}
+
+let s string = "global";
+foo();
+print s;

@@ -1,0 +1,15 @@
+/*foo()
+bar()
+*/
+fn foo() void {
+    print "foo()";
+}
+
+fn bar() void {
+    print "bar()";
+}
+
+let baz fn()void = foo;
+baz();
+baz = bar;
+baz();

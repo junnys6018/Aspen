@@ -1,0 +1,17 @@
+/*
+    10:5 cannot assign expression of type string to 's', which has type i64.
+    16:1 cannot print an expression of type void.
+    17:7 invalid operation: operator + is not defined for void and i64.
+*/
+fn foo() string {
+    return "foo";
+}
+
+let s i64 = foo();
+
+fn bar() void {
+
+}
+
+print bar();
+bar() + 1;

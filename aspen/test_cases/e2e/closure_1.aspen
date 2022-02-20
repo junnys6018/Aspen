@@ -1,0 +1,9 @@
+/*this is foo
+*/
+let foo string = "this is foo";
+
+fn printFoo() void {
+    print foo;
+}
+
+printFoo();

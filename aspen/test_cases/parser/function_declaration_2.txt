@@ -1,0 +1,4 @@
+((fn foo (return string) (param s string)))
+fn foo(s string) string {
+
+}

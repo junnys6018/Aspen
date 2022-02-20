@@ -2,9 +2,9 @@
 
 program        → declaration* EOF
 
-declaration    → varDecl | statement
+declaration    → varDecl | fnDecl | statement
 
-statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt
+statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | returnStmt
 
 exprStmt       → expression ";"
 printStmt      → "print" expression ";"
@@ -12,8 +12,13 @@ block          → "{" declaration* "}"
 ifStmt         → "if" "(" expression ")" block ( "else" "if" block )* ( "else" block )?
 whileStmt      → "while" "(" expression ")" block
 forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression?  ")" block
+returnStmt     → "return" expression? ";"
 
 varDecl        → "let" IDENTIFIER type ( "=" expression )? ";"
+fnDecl         → "fn" IDENTIFIER "(" parameters? ")" ( type | "void" ) block
+
+parameters     → IDENTIFIER type ( "," IDENTIFIER type )*
+
 
 // Expressions
 

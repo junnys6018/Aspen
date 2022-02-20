@@ -164,6 +164,7 @@ func GenerateASTCode() {
 
 	stmtNodes.defineNode("Print", Fields{
 		{"expr", "Expression"},
+		{"loc", "Token"},
 	})
 
 	stmtNodes.defineNode("Let", Fields{
@@ -186,6 +187,18 @@ func GenerateASTCode() {
 	stmtNodes.defineNode("While", Fields{
 		{"condition", "Expression"},
 		{"body", "Statement"},
+		{"loc", "Token"},
+	})
+
+	stmtNodes.defineNode("Function", Fields{
+		{"name", "Token"},
+		{"parameters", "[]Token"},
+		{"body", "*BlockStatement"},
+		{"atype", "FunctionType"},
+	})
+
+	stmtNodes.defineNode("Return", Fields{
+		{"value", "Expression"},
 		{"loc", "Token"},
 	})
 

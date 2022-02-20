@@ -121,7 +121,7 @@ func (i *Interpreter) VisitCall(expr *CallExpression) interface{} {
 		arguments[j] = i.VisitExpressionNode(expr.arguments[j])
 	}
 
-	return callee.Call(arguments)
+	return callee.Call(i, arguments)
 }
 
 func (i *Interpreter) VisitExpression(stmt *ExpressionStatement) interface{} {
@@ -142,15 +142,23 @@ func (i *Interpreter) VisitLet(stmt *LetStatement) interface{} {
 	return nil
 }
 
-func (i *Interpreter) VisitBlock(stmt *BlockStatement) interface{} {
+func (i *Interpreter) ExecuteBlock(stmt *BlockStatement, environment Environment) {
 	enclosing := i.environment
-	i.environment = NewEnvironment(&enclosing)
+	i.environment = environment
+
+	// we defer because VisitStatementNode can panic when we return
+	defer func() {
+		i.environment = enclosing
+	}()
 
 	for _, stmt := range stmt.statements {
 		i.VisitStatementNode(stmt)
 	}
+}
 
-	i.environment = enclosing
+func (i *Interpreter) VisitBlock(stmt *BlockStatement) interface{} {
+	enclosing := i.environment
+	i.ExecuteBlock(stmt, NewEnvironment(&enclosing))
 	return nil
 }
 
@@ -171,6 +179,21 @@ func (i *Interpreter) VisitWhile(stmt *WhileStatement) interface{} {
 		i.VisitStatementNode(stmt.body)
 	}
 	return nil
+}
+
+func (i *Interpreter) VisitFunction(stmt *FunctionStatement) interface{} {
+	i.environment.Define(stmt.name.String(), &UserFunction{declaration: stmt, closure: i.environment})
+	return nil
+}
+
+func (i *Interpreter) VisitReturn(stmt *ReturnStatement) interface{} {
+	var value ReturnValue
+
+	if stmt.value != nil {
+		value.value = i.VisitExpressionNode(stmt.value)
+	}
+
+	panic(value)
 }
 
 func Interpret(ast Program) (err error) {

@@ -40,6 +40,10 @@ func (p *Parser) Declaration() Statement {
 		return p.LetStatement()
 	}
 
+	if p.Match(TOKEN_FN) {
+		return p.FunctionDeclaration()
+	}
+
 	return p.Statement()
 }
 
@@ -64,13 +68,18 @@ func (p *Parser) Statement() Statement {
 		return p.ForStatement()
 	}
 
+	if p.Match(TOKEN_RETURN) {
+		return p.ReturnStatement()
+	}
+
 	return p.ExpressionStatement()
 }
 
 func (p *Parser) PrintStatement() Statement {
+	loc := p.Previous()
 	expr := p.Expression()
 	p.Consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
-	return &PrintStatement{expr: expr}
+	return &PrintStatement{expr: expr, loc: *loc}
 }
 
 func (p *Parser) BlockStatement() Statement {
@@ -181,6 +190,45 @@ func (p *Parser) LetStatement() Statement {
 
 	p.Consume(TOKEN_SEMICOLON, "expected \";\" after variable declaration.")
 	return &LetStatement{name: *name, initializer: initializer, atype: atype}
+}
+
+func (p *Parser) FunctionDeclaration() Statement {
+	name := p.Consume(TOKEN_IDENTIFIER, "expected a function name.")
+	p.Consume(TOKEN_LEFT_PAREN, "expected \"(\".")
+
+	parameters := make([]Token, 0)
+	parameterTypes := make([]*Type, 0)
+
+	if !p.Check(TOKEN_RIGHT_PAREN) {
+		parameters = append(parameters, *p.Consume(TOKEN_IDENTIFIER, "expected an identifier."))
+		parameterTypes = append(parameterTypes, p.Type())
+		for p.Match(TOKEN_COMMA) {
+			parameters = append(parameters, *p.Consume(TOKEN_IDENTIFIER, "expected an identifier."))
+			parameterTypes = append(parameterTypes, p.Type())
+		}
+	}
+
+	p.Consume(TOKEN_RIGHT_PAREN, "expected \")\".")
+
+	returnType := p.ReturnType()
+
+	p.Consume(TOKEN_LEFT_BRACE, "expected \"{\".")
+	body := p.BlockStatement().(*BlockStatement)
+
+	atype := FunctionType{parameters: parameterTypes, returnType: returnType}
+	return &FunctionStatement{name: *name, parameters: parameters, body: body, atype: atype}
+}
+
+func (p *Parser) ReturnStatement() Statement {
+	loc := p.Previous()
+
+	var value Expression
+	if !p.Check(TOKEN_SEMICOLON) {
+		value = p.Expression()
+	}
+
+	p.Consume(TOKEN_SEMICOLON, "expected \";\" after expression.")
+	return &ReturnStatement{loc: *loc, value: value}
 }
 
 // Expressions
@@ -383,16 +431,20 @@ func (p *Parser) Function() *Type {
 
 		p.Consume(TOKEN_RIGHT_PAREN, "expected \")\".")
 
-		var returnType *Type
-		if p.Match(TOKEN_VOID) {
-			returnType = SimpleType(TYPE_VOID)
-		} else {
-			returnType = p.Type()
-		}
+		returnType := p.ReturnType()
+
 		return &Type{kind: TYPE_FUNCTION, other: FunctionType{parameters: parameters, returnType: returnType}}
 	}
 
 	return p.Slice()
+}
+
+func (p *Parser) ReturnType() *Type {
+	if p.Match(TOKEN_VOID) {
+		return SimpleType(TYPE_VOID)
+	} else {
+		return p.Type()
+	}
 }
 
 func (p *Parser) Slice() *Type {

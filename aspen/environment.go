@@ -40,6 +40,11 @@ func (e Environment) IsDefined(name string) bool {
 	return ok
 }
 
+func (e Environment) IsDefinedLocally(name string) bool {
+	_, ok := e.values[name]
+	return ok
+}
+
 func (e Environment) Get(name string) interface{} {
 	val, ok := e.values[name]
 	if ok {

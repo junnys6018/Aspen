@@ -1,0 +1,22 @@
+/*
+    9:5 cannot return an expression of type i64 (string expected).
+    10:5 function must return an expression of type string.
+    14:5 no return values expected.
+    19:9 cannot return an expression of type string (i64 expected).
+    21:5 cannot return an expression of type i64 (string expected).
+*/
+fn foo() string {
+    return 1;
+    return;
+}
+
+fn bar() void {
+    return 1;
+}
+
+fn outer() string {
+    fn inner() i64 {
+        return "string";
+    }
+    return 3;
+}

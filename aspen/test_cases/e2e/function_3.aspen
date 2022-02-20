@@ -1,0 +1,7 @@
+/*Hi, Dear Reader!
+*/
+fn sayHi(first string, last string) string {
+  print "Hi, " + first + " " + last + "!";
+}
+
+sayHi("Dear", "Reader");

@@ -1,0 +1,4 @@
+((fn foo (return void)))
+fn foo() void {
+
+}

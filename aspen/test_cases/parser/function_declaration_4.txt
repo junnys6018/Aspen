@@ -1,0 +1,4 @@
+((fn foo (return void) (print "foo")))
+fn foo() void {
+    print "foo";
+}

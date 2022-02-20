@@ -3,8 +3,9 @@ package main
 import "fmt"
 
 type TypeChecker struct {
-	environment   Environment
-	errorReporter ErrorReporter
+	environment     Environment
+	errorReporter   ErrorReporter
+	currentFunction *FunctionType
 }
 
 func (tc *TypeChecker) FatalError(token Token, message string) {
@@ -187,11 +188,19 @@ func (tc *TypeChecker) VisitExpression(stmt *ExpressionStatement) interface{} {
 }
 
 func (tc *TypeChecker) VisitPrint(stmt *PrintStatement) interface{} {
-	tc.VisitExpressionNode(stmt.expr)
+	value := tc.VisitExpressionNode(stmt.expr).(*Type)
+	if value.kind == TYPE_VOID {
+		tc.Error(stmt.loc, "cannot print an expression of type void.")
+	}
 	return nil
 }
 
 func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
+	name := stmt.name.String()
+	if tc.environment.IsDefinedLocally(name) {
+		tc.FatalError(stmt.name, fmt.Sprintf("cannot redefine '%s'.", name))
+	}
+
 	// Slice and function types must be initialized
 	if stmt.initializer == nil && (stmt.atype.kind == TYPE_SLICE || stmt.atype.kind == TYPE_FUNCTION) {
 		tc.FatalError(stmt.name, fmt.Sprintf("'%s' must be initialized.", stmt.name.value))
@@ -221,20 +230,25 @@ func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
 		}
 	}
 
-	tc.environment.Define(stmt.name.String(), stmt.atype)
+	tc.environment.Define(name, stmt.atype)
 
 	return nil
 }
 
-func (tc *TypeChecker) VisitBlock(stmt *BlockStatement) interface{} {
+func (tc *TypeChecker) CheckBlock(stmt *BlockStatement, environment Environment) {
 	enclosing := tc.environment
-	tc.environment = NewEnvironment(&enclosing)
+	tc.environment = environment
 
 	for _, stmt := range stmt.statements {
 		tc.VisitStatementNode(stmt)
 	}
 
 	tc.environment = enclosing
+}
+
+func (tc *TypeChecker) VisitBlock(stmt *BlockStatement) interface{} {
+	enclosing := tc.environment
+	tc.CheckBlock(stmt, NewEnvironment(&enclosing))
 	return nil
 }
 
@@ -260,6 +274,53 @@ func (tc *TypeChecker) VisitWhile(stmt *WhileStatement) interface{} {
 	condition := tc.VisitExpressionNode(stmt.condition).(*Type)
 	if condition.kind != TYPE_BOOL {
 		tc.FatalError(stmt.loc, "expected an expression of type bool.")
+	}
+	return nil
+}
+
+func (tc *TypeChecker) VisitFunction(stmt *FunctionStatement) interface{} {
+	enclosing := tc.environment
+
+	name := stmt.name.String()
+	if enclosing.IsDefinedLocally(name) {
+		tc.FatalError(stmt.name, fmt.Sprintf("cannot redefine '%s'.", name))
+	}
+
+	enclosing.Define(name, &Type{kind: TYPE_FUNCTION, other: stmt.atype})
+
+	environment := NewEnvironment(&enclosing)
+
+	for i := range stmt.parameters {
+		environment.Define(stmt.parameters[i].String(), stmt.atype.parameters[i])
+	}
+
+	enclosingFn := tc.currentFunction
+	tc.currentFunction = &stmt.atype
+	tc.CheckBlock(stmt.body, environment)
+	tc.currentFunction = enclosingFn
+	return nil
+}
+
+func (tc *TypeChecker) VisitReturn(stmt *ReturnStatement) interface{} {
+	if tc.currentFunction == nil {
+		tc.FatalError(stmt.loc, "cannot return from top level code.")
+	} else {
+		var value *Type
+		if stmt.value == nil {
+			value = SimpleType(TYPE_VOID)
+		} else {
+			value = tc.VisitExpressionNode(stmt.value).(*Type)
+		}
+
+		returnType := tc.currentFunction.returnType
+
+		if returnType.IsVoid() && !value.IsVoid() {
+			tc.Error(stmt.loc, "no return values expected.")
+		} else if !returnType.IsVoid() && value.IsVoid() {
+			tc.Error(stmt.loc, fmt.Sprintf("function must return an expression of type %v.", returnType))
+		} else if !TypesEqual(value, returnType) {
+			tc.Error(stmt.loc, fmt.Sprintf("cannot return an expression of type %v (%v expected).", value, returnType))
+		}
 	}
 	return nil
 }

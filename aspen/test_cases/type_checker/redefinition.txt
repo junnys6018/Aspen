@@ -1,0 +1,25 @@
+/*
+    8:5 cannot redefine 'a'.
+    13:4 cannot redefine 'b'.
+    18:4 cannot redefine 'c'.
+    25:5 cannot redefine 'd'.
+*/
+let a string;
+let a i64;
+
+fn b() void {
+
+}
+fn b() string {
+
+}
+
+let c i64;
+fn c() string {
+
+}
+
+fn d() string {
+
+}
+let d string;

@@ -1,0 +1,6 @@
+/*
+    5:18 cannot use argument of type string as the 1st parameter to function call (expected bool).
+*/
+fn echo(b bool) void {
+    echo("string");
+}

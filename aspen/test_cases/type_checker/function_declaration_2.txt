@@ -1,0 +1,6 @@
+/*
+    5:7 invalid operation: operator + is not defined for bool and string.
+*/
+fn foo(a bool, b string) void {
+    a + b;
+}

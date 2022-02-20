@@ -1,0 +1,7 @@
+/*
+    6:7 invalid operation: operator + is not defined for i64 and bool.
+*/
+let i i64;
+fn foo() void {
+    i + false;
+}
