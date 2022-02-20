@@ -27,7 +27,7 @@ if (false) {
     print "then branch 5";
 } else if (true) {
     print "else if branch 5:1";
-}else if (true) {
+} else if (true) {
     print "else if branch 5:2";
 } else {
     print "else branch 5";
