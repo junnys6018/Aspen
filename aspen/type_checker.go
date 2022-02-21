@@ -253,28 +253,29 @@ func (tc *TypeChecker) VisitBlock(stmt *BlockStatement) interface{} {
 }
 
 func (tc *TypeChecker) VisitIf(stmt *IfStatement) interface{} {
-	// visit the then and else block first
+	// check that the condition is a bool
+	condition := tc.VisitExpressionNode(stmt.condition).(*Type)
+	if condition.kind != TYPE_BOOL {
+		tc.Error(stmt.loc, "expected an expression of type bool.")
+	}
+
+	// visit the then and else block
 	tc.VisitStatementNode(stmt.thenBranch)
 	if stmt.elseBranch != nil {
 		tc.VisitStatementNode(stmt.elseBranch)
-	}
-
-	// then type check the condition
-	condition := tc.VisitExpressionNode(stmt.condition).(*Type)
-	if condition.kind != TYPE_BOOL {
-		tc.FatalError(stmt.loc, "expected an expression of type bool.")
 	}
 
 	return nil
 }
 
 func (tc *TypeChecker) VisitWhile(stmt *WhileStatement) interface{} {
-	tc.VisitStatementNode(stmt.body)
-
+	// check that the condition is a bool
 	condition := tc.VisitExpressionNode(stmt.condition).(*Type)
 	if condition.kind != TYPE_BOOL {
-		tc.FatalError(stmt.loc, "expected an expression of type bool.")
+		tc.Error(stmt.loc, "expected an expression of type bool.")
 	}
+
+	tc.VisitStatementNode(stmt.body)
 	return nil
 }
 
