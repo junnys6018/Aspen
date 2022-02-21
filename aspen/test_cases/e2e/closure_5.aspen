@@ -1,0 +1,13 @@
+/*false
+*/
+fn foo() fn()void {
+    fn bar() void {
+
+    }
+    return bar;
+}
+
+let a fn()void = foo();
+let b fn()void = foo();
+
+print a == b;
