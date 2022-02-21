@@ -288,8 +288,8 @@ func (tc *TypeChecker) DefineFunction(stmt *FunctionStatement) {
 }
 
 func (tc *TypeChecker) VisitFunction(stmt *FunctionStatement) interface{} {
-	if tc.currentFunction != nil {
-		// global functions were defined in the first pass
+	if tc.environment.enclosing != nil {
+		// skip defining global functions, they were defined in the first pass
 		tc.DefineFunction(stmt)
 	}
 
@@ -360,7 +360,6 @@ func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
 		if ok {
 			typeChecker.DefineFunction(fnDecl)
 		}
-
 	}
 
 	for _, stmt := range ast {

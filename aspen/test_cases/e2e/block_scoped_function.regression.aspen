@@ -1,0 +1,8 @@
+/*foo
+*/
+{
+    fn foo() void {
+        print "foo";
+    }
+    foo();
+}
