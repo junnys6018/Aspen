@@ -49,7 +49,6 @@ func PrintValue(iface interface{}) {
 }
 
 func ValuesEqual(lhs, rhs interface{}) bool {
-	// todo: revisit this when we implement object types
 	if IsValueType(lhs) {
 		return lhs == rhs
 	}
@@ -67,6 +66,18 @@ func ValuesEqual(lhs, rhs interface{}) bool {
 			}
 		}
 		return true
+	case *NativeFunction:
+		rhsV, ok := rhs.(*NativeFunction)
+		if !ok {
+			return false
+		}
+		return lhsV == rhsV
+	case *UserFunction:
+		rhsV, ok := rhs.(*UserFunction)
+		if !ok {
+			return false
+		}
+		return lhsV == rhsV
 	}
 
 	Unreachable("ValuesEqual")

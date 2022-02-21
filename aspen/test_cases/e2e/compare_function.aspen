@@ -1,0 +1,29 @@
+/*true
+false
+false
+true
+true
+*/
+fn foo() void {
+
+}
+
+fn bar() void {
+
+}
+
+fn baz() i64 {
+    return 1;
+}
+
+let a fn()void = foo;
+let b fn()void = foo;
+let c fn()void = bar;
+let d fn()i64 = baz;
+let e fn()i64 = clock;
+
+print a == b;
+print a == c;
+print clock == d;
+print e == clock;
+print clock == e;
