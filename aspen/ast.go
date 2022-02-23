@@ -69,7 +69,8 @@ func (expr *GroupingExpression) String() string {
 }
 
 type IdentifierExpression struct {
-	name Token
+	name  Token
+	depth int
 }
 
 func (expr *IdentifierExpression) Accept(visitor ExpressionVisitor) interface{} {
@@ -84,6 +85,7 @@ func (expr *IdentifierExpression) String() string {
 type AssignmentExpression struct {
 	name  Token
 	value Expression
+	depth int
 }
 
 func (expr *AssignmentExpression) Accept(visitor ExpressionVisitor) interface{} {

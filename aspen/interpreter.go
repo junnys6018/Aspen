@@ -100,7 +100,7 @@ func (i *Interpreter) VisitLiteral(expr *LiteralExpression) interface{} {
 }
 
 func (i *Interpreter) VisitIdentifier(expr *IdentifierExpression) interface{} {
-	return i.environment.Get(expr.name.String())
+	return i.environment.GetAt(expr.name.String(), expr.depth)
 }
 
 func (i *Interpreter) VisitGrouping(expr *GroupingExpression) interface{} {
@@ -109,7 +109,7 @@ func (i *Interpreter) VisitGrouping(expr *GroupingExpression) interface{} {
 
 func (i *Interpreter) VisitAssignment(expr *AssignmentExpression) interface{} {
 	value := i.VisitExpressionNode(expr.value)
-	i.environment.Assign(expr.name.String(), value)
+	i.environment.AssignAt(expr.name.String(), expr.depth, value)
 	return value
 }
 

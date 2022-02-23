@@ -131,11 +131,13 @@ func GenerateASTCode() {
 
 	exprNodes.defineNode("Identifier", Fields{
 		{"name", "Token"},
+		{"depth", "int"},
 	})
 
 	exprNodes.defineNode("Assignment", Fields{
 		{"name", "Token"},
 		{"value", "Expression"},
+		{"depth", "int"},
 	})
 
 	exprNodes.defineNode("Call", Fields{

@@ -126,7 +126,9 @@ func (tc *TypeChecker) VisitIdentifier(expr *IdentifierExpression) interface{} {
 		tc.FatalError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
 	}
 
-	return tc.environment.Get(name)
+	expr.depth = tc.environment.GetDepth(name)
+
+	return tc.environment.GetAt(name, expr.depth)
 }
 
 func (tc *TypeChecker) VisitGrouping(expr *GroupingExpression) interface{} {
@@ -140,7 +142,9 @@ func (tc *TypeChecker) VisitAssignment(expr *AssignmentExpression) interface{} {
 		tc.FatalError(expr.name, fmt.Sprintf("undeclared identifier '%s'.", name))
 	}
 
-	identifierType := tc.environment.Get(name).(*Type)
+	expr.depth = tc.environment.GetDepth(name)
+
+	identifierType := tc.environment.GetAt(name, expr.depth).(*Type)
 	valueType := tc.VisitExpressionNode(expr.value).(*Type)
 
 	if !TypesEqual(identifierType, valueType) {

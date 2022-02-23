@@ -20,16 +20,26 @@ func (e Environment) Define(name string, value interface{}) {
 	e.values[name] = value
 }
 
-func (e Environment) Assign(name string, value interface{}) {
-	_, ok := e.values[name]
-
-	if ok {
-		e.values[name] = value
-	} else if e.enclosing != nil {
-		e.enclosing.Assign(name, value)
-	} else {
-		Unreachable("Environment::Assign")
+func (e Environment) Ancestor(depth int) Environment {
+	environment := e
+	for i := 0; i < depth; i++ {
+		if environment.enclosing == nil {
+			panic("Environment::Ancestor: bad depth")
+		}
+		environment = *environment.enclosing
 	}
+
+	return environment
+}
+
+func (e Environment) AssignAt(name string, depth int, value interface{}) {
+	ancestor := e.Ancestor(depth)
+
+	if !ancestor.IsDefinedLocally(name) {
+		panic("Environment::AssignAt: name not defined")
+	}
+
+	ancestor.values[name] = value
 }
 
 func (e Environment) IsDefined(name string) bool {
@@ -45,16 +55,19 @@ func (e Environment) IsDefinedLocally(name string) bool {
 	return ok
 }
 
-func (e Environment) Get(name string) interface{} {
-	val, ok := e.values[name]
-	if ok {
-		return val
+func (e Environment) GetAt(name string, depth int) interface{} {
+	return e.Ancestor(depth).values[name]
+}
+
+func (e Environment) GetDepth(name string) int {
+	if e.IsDefinedLocally(name) {
+		return 0
 	} else if e.enclosing != nil {
-		return e.enclosing.Get(name)
+		return 1 + e.enclosing.GetDepth(name)
 	}
 
-	Unreachable("Environment::Get")
-	return nil
+	Unreachable("Environment::GetDepth")
+	return 0
 }
 
 func NewEnvironment(enclosing *Environment) Environment {
