@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -115,13 +116,37 @@ func Check(err error) {
 
 func Initialize() {
 	start := time.Now()
-	DefineNativeFunction(FunctionType{returnType: SimpleType(TYPE_I64), parameters: []*Type{}}, "clock", func(args []interface{}) interface{} {
+	DefineNativeFunction(SimpleFunction(TYPE_I64), "clock", func(args []interface{}) interface{} {
 		return time.Since(start).Microseconds()
 	})
 
-	DefineNativeFunction(FunctionType{returnType: SimpleType(TYPE_STRING), parameters: []*Type{SimpleType(TYPE_STRING)}}, "__TESTFN__", func(args []interface{}) interface{} {
+	DefineNativeFunction(SimpleFunction(TYPE_STRING, TYPE_STRING), "__TESTFN__", func(args []interface{}) interface{} {
 		arg0 := args[0].([]rune)
 		return []rune(fmt.Sprintf("__TESTFN__(%s)", string(arg0)))
+	})
+
+	// string related functions
+
+	DefineNativeFunction(SimpleFunction(TYPE_STRING, TYPE_I64), "itoa", func(args []interface{}) interface{} {
+		arg0 := args[0].(int64)
+		return []rune(fmt.Sprintf("%d", arg0))
+	})
+
+	DefineNativeFunction(SimpleFunction(TYPE_STRING, TYPE_DOUBLE), "ftoa", func(args []interface{}) interface{} {
+		arg0 := args[0].(float64)
+		return []rune(fmt.Sprintf("%f", arg0))
+	})
+
+	DefineNativeFunction(SimpleFunction(TYPE_I64, TYPE_STRING), "atoi", func(args []interface{}) interface{} {
+		arg0 := string(args[0].([]rune))
+		i, _ := strconv.Atoi(arg0)
+		return i
+	})
+
+	DefineNativeFunction(SimpleFunction(TYPE_DOUBLE, TYPE_STRING), "atof", func(args []interface{}) interface{} {
+		arg0 := string(args[0].([]rune))
+		f, _ := strconv.ParseFloat(arg0, 64)
+		return f
 	})
 }
 

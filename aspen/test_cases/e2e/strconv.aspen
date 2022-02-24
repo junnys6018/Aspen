@@ -1,0 +1,9 @@
+/*100
+42
+10.500000
+100.2
+*/
+print itoa(100);
+print atoi("42");
+print ftoa(10.5);
+print atof("100.2");

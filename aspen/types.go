@@ -144,3 +144,15 @@ func TypesEqual(t1, t2 *Type) bool {
 func SimpleType(typeEnum TypeEnum) *Type {
 	return &Type{kind: typeEnum}
 }
+
+func SimpleFunction(returnType TypeEnum, parameters ...TypeEnum) FunctionType {
+	parameterTypes := make([]*Type, len(parameters))
+	for i := range parameters {
+		parameterTypes[i] = SimpleType(parameters[i])
+	}
+
+	return FunctionType{
+		returnType: SimpleType(returnType),
+		parameters: parameterTypes,
+	}
+}
