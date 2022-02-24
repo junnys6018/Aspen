@@ -1,0 +1,4 @@
+/*
+    4:10 invalid operation: operator + is not defined for string and u64.
+*/
+"string" + u64(100);

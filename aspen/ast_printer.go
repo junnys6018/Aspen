@@ -79,6 +79,11 @@ func (p *AstPrinter) VisitCall(expr *CallExpression) interface{} {
 	return nil
 }
 
+func (p *AstPrinter) VisitTypeCast(expr *TypeCastExpression) interface{} {
+	p.parenthesize(fmt.Sprintf("cast %v", expr.to), expr.value)
+	return nil
+}
+
 func (p *AstPrinter) VisitExpression(stmt *ExpressionStatement) interface{} {
 	p.parenthesize("expr", stmt.expr)
 	return nil

@@ -1,0 +1,2 @@
+((expr (group (cast fn()i64 100))))
+(fn()i64(100));

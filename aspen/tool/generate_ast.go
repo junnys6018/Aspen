@@ -146,6 +146,13 @@ func GenerateASTCode() {
 		{"loc", "Token"},
 	})
 
+	exprNodes.defineNode("TypeCast", Fields{
+		{"from", "*Type"},
+		{"to", "*Type"},
+		{"value", "Expression"},
+		{"loc", "Token"},
+	})
+
 	exprNodes.defineMethod("Accept", Fields{
 		{"visitor", "ExpressionVisitor"},
 	}, "interface{}", func(w io.Writer, nodeName string) {

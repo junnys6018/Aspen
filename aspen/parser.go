@@ -406,9 +406,29 @@ func (p *Parser) Primary() Expression {
 		return &IdentifierExpression{name: *p.Previous()}
 	}
 
-	token := p.Peek()
+	// parse a type cast
+	loc := p.Peek()
 
-	panic(ErrorData{token.line, token.col, "expected expression."})
+	to := func() *Type {
+		// attempt to parse a type but intercept errors
+		defer func() {
+			if r := recover(); r != nil {
+				err := r.(ErrorData)
+				// change the error message to make more sense in this context
+				if err.message == "expected type definition." {
+					err.message = "expected expression."
+				}
+				panic(err)
+			}
+		}()
+		return p.Type()
+	}()
+
+	p.Consume(TOKEN_LEFT_PAREN, "expected \"(\" after type.")
+	value := p.Expression()
+	p.Consume(TOKEN_RIGHT_PAREN, "expected \")\" after type.")
+
+	return &TypeCastExpression{to: to, value: value, loc: *loc}
 }
 
 // Types

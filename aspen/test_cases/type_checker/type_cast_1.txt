@@ -1,0 +1,4 @@
+/*
+    4:1 cannot cast expression of type string to bool.
+*/
+bool("string");

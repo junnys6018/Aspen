@@ -38,8 +38,7 @@ factor         → unary ( ( "/" | "*" | "%" ) unary )*
 
 unary          → ( "!" | "-" ) unary | call
 call_or_sub    → primary ( "(" arguments? ")" | "[" expression "]" )*
-primary        → "true" | "false" | "nil" |
-               | FLOAT | INT | STRING | IDENTIFIER | "(" expression ")"
+primary        → "true" | "false" | "nil" | FLOAT | INT | STRING | IDENTIFIER | "(" expression ")" | type "(" expression ")"
 
 arguments      → expression ( "," expression )*
 

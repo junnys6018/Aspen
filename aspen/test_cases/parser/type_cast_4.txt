@@ -1,0 +1,2 @@
+((expr (|| false (cast bool 100))))
+false || bool(100);

@@ -124,6 +124,11 @@ func (i *Interpreter) VisitCall(expr *CallExpression) interface{} {
 	return callee.Call(i, arguments)
 }
 
+func (i *Interpreter) VisitTypeCast(expr *TypeCastExpression) interface{} {
+	handler := GetHandler(expr.from, expr.to)
+	return handler(i.VisitExpressionNode(expr.value))
+}
+
 func (i *Interpreter) VisitExpression(stmt *ExpressionStatement) interface{} {
 	i.VisitExpressionNode(stmt.expr)
 	return nil

@@ -148,6 +148,38 @@ func Initialize() {
 		f, _ := strconv.ParseFloat(arg0, 64)
 		return f
 	})
+
+	// type casting
+
+	AddConversion(SimpleType(TYPE_I64), SimpleType(TYPE_U64), func(from interface{}) interface{} {
+		v := from.(int64)
+		return uint64(v)
+	})
+
+	AddConversion(SimpleType(TYPE_I64), SimpleType(TYPE_DOUBLE), func(from interface{}) interface{} {
+		v := from.(int64)
+		return float64(v)
+	})
+
+	AddConversion(SimpleType(TYPE_U64), SimpleType(TYPE_I64), func(from interface{}) interface{} {
+		v := from.(uint64)
+		return int64(v)
+	})
+
+	AddConversion(SimpleType(TYPE_U64), SimpleType(TYPE_DOUBLE), func(from interface{}) interface{} {
+		v := from.(uint64)
+		return float64(v)
+	})
+
+	AddConversion(SimpleType(TYPE_DOUBLE), SimpleType(TYPE_I64), func(from interface{}) interface{} {
+		v := from.(float64)
+		return int64(v)
+	})
+
+	AddConversion(SimpleType(TYPE_DOUBLE), SimpleType(TYPE_U64), func(from interface{}) interface{} {
+		v := from.(float64)
+		return uint64(v)
+	})
 }
 
 func main() {

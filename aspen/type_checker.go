@@ -407,6 +407,17 @@ func (tc *TypeChecker) VisitCall(expr *CallExpression) interface{} {
 	return other.returnType
 }
 
+func (tc *TypeChecker) VisitTypeCast(expr *TypeCastExpression) interface{} {
+	from := tc.VisitExpressionNode(expr.value).(*Type)
+	expr.from = from
+
+	if !IsConversionLegal(from, expr.to) {
+		tc.FatalError(expr.loc, fmt.Sprintf("cannot cast expression of type %v to %v.", from, expr.to))
+	}
+
+	return expr.to
+}
+
 func (tc *TypeChecker) VisitExpression(stmt *ExpressionStatement) interface{} {
 	tc.VisitExpressionNode(stmt.expr)
 	return nil

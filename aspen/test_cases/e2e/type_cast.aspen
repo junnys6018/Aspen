@@ -1,0 +1,18 @@
+/*100
+99
+20
+42
+20
+21
+0.5
+*/
+print u64(100);
+print u64(99.3);
+
+print i64(u64(20));
+print i64(42.3);
+
+print double(20);
+print double(u64(21));
+
+print double(5) / double(10);

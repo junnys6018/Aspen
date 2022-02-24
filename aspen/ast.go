@@ -8,6 +8,7 @@ type ExpressionVisitor interface {
 	VisitIdentifier(expr *IdentifierExpression) interface{}
 	VisitAssignment(expr *AssignmentExpression) interface{}
 	VisitCall(expr *CallExpression) interface{}
+	VisitTypeCast(expr *TypeCastExpression) interface{}
 }
 type Expression interface {
 	Accept(visitor ExpressionVisitor) interface{}
@@ -107,6 +108,22 @@ func (expr *CallExpression) Accept(visitor ExpressionVisitor) interface{} {
 	return visitor.VisitCall(expr)
 }
 func (expr *CallExpression) String() string {
+	printer := AstPrinter{}
+	printer.VisitExpressionNode(expr)
+	return printer.builder.String()
+}
+
+type TypeCastExpression struct {
+	from  *Type
+	to    *Type
+	value Expression
+	loc   Token
+}
+
+func (expr *TypeCastExpression) Accept(visitor ExpressionVisitor) interface{} {
+	return visitor.VisitTypeCast(expr)
+}
+func (expr *TypeCastExpression) String() string {
 	printer := AstPrinter{}
 	printer.VisitExpressionNode(expr)
 	return printer.builder.String()
