@@ -10,7 +10,7 @@ for (let i i64 = 0; i <= 30; i = i + 1) {
 
     let n i64 = fib(i);
 
-    let msElapsed i64 = (clock() - start) / 1000;
+    let msElapsed double = double(clock() - start) / 1000.0;
 
-    print "calculated fib(" + itoa(i) + ") = " + itoa(n) + " in " + itoa(msElapsed) + "ms";
+    print "calculated fib(" + itoa(i) + ") = " + itoa(n) + " in " + ftoa(msElapsed) + "ms";
 }
