@@ -1,16 +1,17 @@
 /*0
 0
+0
 false
 
 */
 let u1 i64;
-// let u2 u64;
+let u2 u64;
 let u3 double;
 let u4 bool;
 let u5 string;
 
 print u1;
-// print u2;
+print u2;
 print u3;
 print u4;
 print u5;

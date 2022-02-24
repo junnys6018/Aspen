@@ -448,7 +448,11 @@ func (tc *TypeChecker) VisitLet(stmt *LetStatement) interface{} {
 		case TYPE_I64:
 			stmt.initializer = &LiteralExpression{value: Token{tokenType: TOKEN_INT_LITERAL, value: int64(0)}}
 		case TYPE_U64:
-			// todo: set initializer to the expression `u64(0)`
+			stmt.initializer = &TypeCastExpression{
+				from:  SimpleType(TYPE_I64),
+				to:    SimpleType(TYPE_U64),
+				value: &LiteralExpression{value: Token{tokenType: TOKEN_INT_LITERAL, value: int64(0)}},
+			}
 		case TYPE_BOOL:
 			stmt.initializer = &LiteralExpression{value: Token{tokenType: TOKEN_FALSE}}
 		case TYPE_STRING:
