@@ -250,6 +250,23 @@ func LexerTestGetValue(line string, tokenType string) (interface{}, error) {
 	}
 }
 
+func ScanErrorMessage(line string, lineNumber *int, col *int, message *string) {
+	var end int
+
+	// skip leading space
+	for unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+	// skip line:col part
+	for !unicode.IsSpace(rune(line[end])) {
+		end++
+	}
+
+	fmt.Sscanf(line, "%d:%d", lineNumber, col)
+
+	*message = line[end+1:]
+}
+
 func NewLexerTestCase(file string, t *testing.T) TestCase {
 	data, err := os.ReadFile(file)
 

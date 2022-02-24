@@ -1,11 +1,211 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
+
+type ReferenceNode struct {
+	// the set of undefined functions this node directly or indirectly references
+	unresolvedReferences NodeSet
+
+	// the list of nodes this node directly references
+	references []*ReferenceNode
+
+	// the set of nodes that reference this node (either directly or indirectly)
+	isReferencedBy NodeSet
+
+	// the tokens in which the references was made
+	referenceLocations []*Token
+}
+
+type NodeSet map[*ReferenceNode]struct{}
+
+type ReferenceGraph struct {
+	// maps a function declaration to its corresponding node in the reference graph
+	nodes map[*FunctionStatement]*ReferenceNode
+
+	// the set of undefined functions
+	undefinedFunctions NodeSet
+}
+
+func (g *ReferenceGraph) GetFunction(target *ReferenceNode) *FunctionStatement {
+	for fn, node := range g.nodes {
+		if node == target {
+			return fn
+		}
+	}
+	Unreachable("ReferenceGraph::GetFunction")
+	return nil
+}
+
+func (g *ReferenceGraph) AddNode(fn *FunctionStatement) {
+	g.nodes[fn] = &ReferenceNode{
+		unresolvedReferences: make(NodeSet),
+		isReferencedBy:       make(NodeSet),
+	}
+
+	// we mark a function as always referencing itself (even if it might not be the case)
+	g.nodes[fn].isReferencedBy[g.nodes[fn]] = struct{}{}
+}
+
+func (g *ReferenceGraph) AddUndefinedNode(fn *FunctionStatement) {
+	g.AddNode(fn)
+
+	// mark the newly added node as undefined
+	g.undefinedFunctions[g.nodes[fn]] = struct{}{}
+
+	// since a node always references itself, we add the node to its own list
+	// of unresolved references
+	g.nodes[fn].unresolvedReferences[g.nodes[fn]] = struct{}{}
+}
+
+func (g *ReferenceGraph) AddEdge(from, to *FunctionStatement, loc *Token) {
+	fromNode := g.nodes[from]
+	toNode := g.nodes[to]
+
+	fromNode.references = append(fromNode.references, toNode)
+	fromNode.referenceLocations = append(fromNode.referenceLocations, loc)
+
+	// any node that referenced `from` indirectly now references `to` indirectly
+	for k := range fromNode.isReferencedBy {
+		toNode.isReferencedBy[k] = struct{}{}
+	}
+
+	// any unresolved reference made by the `to` function will be inherited by any function that references `from`
+	// this is why we mark a function as referencing itself, so that `from` also inherits the unresolved references
+	for node := range toNode.unresolvedReferences {
+		for from := range fromNode.isReferencedBy {
+			from.unresolvedReferences[node] = struct{}{}
+			node.isReferencedBy[from] = struct{}{}
+		}
+	}
+}
+
+func (g *ReferenceGraph) MarkNodeAsDefined(fn *FunctionStatement) {
+	definedNode := g.nodes[fn]
+
+	// for each function that references the undefined node
+	for node := range definedNode.isReferencedBy {
+		// ...remove that reference. The node is now defined
+		delete(node.unresolvedReferences, definedNode)
+	}
+
+	// the node is now defined, remove its entry here
+	delete(g.undefinedFunctions, definedNode)
+}
+
+func (g *ReferenceGraph) ReferencesUndefinedNode(fn *FunctionStatement) (bool, []*Token) {
+	// does `fn` reference any undefined function?
+	ok := len(g.nodes[fn].unresolvedReferences) == 0
+	if ok {
+		// if no return early
+		return false, nil
+	}
+
+	// traverse through the graph to find the path to the undefined function
+	parent := make(map[*ReferenceNode]*ReferenceNode)
+	visitedNodes := make(NodeSet)
+	stack := make([]*ReferenceNode, 0)
+	stack = append(stack, g.nodes[fn])
+
+	// the last element of the path
+	var end *ReferenceNode
+
+	// dfs our way to an undefined function
+	for len(stack) != 0 {
+		node := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+
+		// mark node as visited
+		visitedNodes[node] = struct{}{}
+
+		if _, ok := g.undefinedFunctions[node]; ok {
+			// the node we popped is undefined, we are done
+			end = node
+			break
+		}
+
+		for _, child := range node.references {
+			_, visited := visitedNodes[child]
+			if !visited {
+				parent[child] = node
+				stack = append(stack, child)
+			}
+		}
+	}
+
+	chain := make([]*Token, 0)
+	chain = append(chain, &g.GetFunction(end).name)
+
+	// traverse the parent chain starting from `end` until we reach the root node
+	for {
+		p, ok := parent[end]
+		if !ok {
+			// end has no parent, ie we have reached the root node
+			break
+		}
+
+		// find the corresponding token and append it
+		for i := range p.references {
+			if p.references[i] == end {
+				chain = append(chain, p.referenceLocations[i])
+				break
+			}
+		}
+		end = p
+	}
+
+	return true, chain
+}
+
+func NewReferenceGraph() *ReferenceGraph {
+	return &ReferenceGraph{
+		nodes:              make(map[*FunctionStatement]*ReferenceNode),
+		undefinedFunctions: make(NodeSet),
+	}
+}
+
+func UnresolvedErrorMessage(chain []*Token, start *Token) string {
+	builder := strings.Builder{}
+	fmt.Fprintf(&builder, "reference to unresolved function '%v'.", chain[0])
+
+	if len(chain) > 1 {
+		fmt.Fprintf(&builder, "\n\n    %d:%d %v refers to\n", start.line, start.col, start)
+		for i := len(chain) - 1; i > 0; i-- {
+			token := chain[i]
+			if i == 1 {
+				fmt.Fprintf(&builder, "    %d:%d %v", token.line, token.col, token)
+			} else {
+				fmt.Fprintf(&builder, "    %d:%d %v refers to\n", token.line, token.col, token)
+			}
+		}
+	}
+
+	return builder.String()
+}
+
+type Scopes []map[string]*FunctionStatement
+
+func (s Scopes) GetAt(name string, depth int) *FunctionStatement {
+	return s[len(s)-depth-1][name]
+}
+
+func (s Scopes) GetGlobal(name string) *FunctionStatement {
+	return s[0][name]
+}
+
+func (s Scopes) Define(name string, fn *FunctionStatement) {
+	s[len(s)-1][name] = fn
+}
 
 type TypeChecker struct {
 	environment     Environment
 	errorReporter   ErrorReporter
-	currentFunction *FunctionType
+	currentFunction *FunctionStatement
+
+	referenceGraph *ReferenceGraph
+	scopes         Scopes
 }
 
 func (tc *TypeChecker) FatalError(token Token, message string) {
@@ -127,8 +327,29 @@ func (tc *TypeChecker) VisitIdentifier(expr *IdentifierExpression) interface{} {
 	}
 
 	expr.depth = tc.environment.GetDepth(name)
+	atype := tc.environment.GetAt(name, expr.depth)
 
-	return tc.environment.GetAt(name, expr.depth)
+	if atype.(*Type).kind == TYPE_FUNCTION {
+		if fn := tc.scopes.GetAt(name, expr.depth); fn != nil {
+			if tc.currentFunction == nil {
+				// make sure reference to function in top level code is not undefined
+				if err, chain := tc.referenceGraph.ReferencesUndefinedNode(fn); err {
+					var location Token
+					if len(chain) > 1 {
+						location = *chain[0]
+					} else {
+						location = expr.name
+					}
+					tc.Error(location, UnresolvedErrorMessage(chain, &expr.name))
+				}
+			} else {
+				// tc.currentFunction references fn
+				tc.referenceGraph.AddEdge(tc.currentFunction, fn, &expr.name)
+			}
+		}
+	}
+
+	return atype
 }
 
 func (tc *TypeChecker) VisitGrouping(expr *GroupingExpression) interface{} {
@@ -243,9 +464,13 @@ func (tc *TypeChecker) CheckBlock(stmt *BlockStatement, environment Environment)
 	enclosing := tc.environment
 	tc.environment = environment
 
+	tc.scopes = append(tc.scopes, make(map[string]*FunctionStatement))
+
 	for _, stmt := range stmt.statements {
 		tc.VisitStatementNode(stmt)
 	}
+
+	tc.scopes = tc.scopes[:len(tc.scopes)-1]
 
 	tc.environment = enclosing
 }
@@ -283,20 +508,30 @@ func (tc *TypeChecker) VisitWhile(stmt *WhileStatement) interface{} {
 	return nil
 }
 
-func (tc *TypeChecker) DefineFunction(stmt *FunctionStatement) {
-	name := stmt.name.String()
+func (tc *TypeChecker) DefineFunction(name string, atype FunctionType) bool {
 	if tc.environment.IsDefinedLocally(name) {
-		tc.Error(stmt.name, fmt.Sprintf("cannot redefine '%s'.", name))
+		return false
 	}
 
-	tc.environment.Define(name, &Type{kind: TYPE_FUNCTION, other: stmt.atype})
+	tc.environment.Define(name, &Type{kind: TYPE_FUNCTION, other: atype})
+	return true
 }
 
 func (tc *TypeChecker) VisitFunction(stmt *FunctionStatement) interface{} {
+	name := stmt.name.String()
+
 	if tc.environment.enclosing != nil {
 		// skip defining global functions, they were defined in the first pass
-		tc.DefineFunction(stmt)
+		if !tc.DefineFunction(name, stmt.atype) {
+			tc.Error(stmt.name, fmt.Sprintf("cannot redefine '%s'.", name))
+		}
+		tc.referenceGraph.AddNode(stmt)
+	} else {
+		// mark global function as defined
+		tc.referenceGraph.MarkNodeAsDefined(stmt)
 	}
+
+	tc.scopes.Define(name, stmt)
 
 	enclosing := tc.environment
 	environment := NewEnvironment(&enclosing)
@@ -318,7 +553,7 @@ func (tc *TypeChecker) VisitFunction(stmt *FunctionStatement) interface{} {
 	}
 
 	enclosingFn := tc.currentFunction
-	tc.currentFunction = &stmt.atype
+	tc.currentFunction = stmt
 	tc.CheckBlock(stmt.body, environment)
 	tc.currentFunction = enclosingFn
 	return nil
@@ -335,7 +570,7 @@ func (tc *TypeChecker) VisitReturn(stmt *ReturnStatement) interface{} {
 			value = tc.VisitExpressionNode(stmt.value).(*Type)
 		}
 
-		returnType := tc.currentFunction.returnType
+		returnType := tc.currentFunction.atype.returnType
 
 		if returnType.IsVoid() && !value.IsVoid() {
 			tc.Error(stmt.loc, "no return values expected.")
@@ -347,23 +582,37 @@ func (tc *TypeChecker) VisitReturn(stmt *ReturnStatement) interface{} {
 	}
 	return nil
 }
-
-func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
-	// initialize global environment
-	environment := NewEnvironment(nil)
-
-	// copy native functions into global environment
-	for k, v := range NativeFunctions {
-		environment.values[k] = &Type{kind: TYPE_FUNCTION, other: v.atype}
+func NewTypeChecker(errorReporter ErrorReporter) *TypeChecker {
+	typeChecker := TypeChecker{
+		environment:    NewEnvironment(nil),
+		errorReporter:  errorReporter,
+		scopes:         make(Scopes, 1),
+		referenceGraph: NewReferenceGraph(),
 	}
 
-	typeChecker := TypeChecker{environment: environment, errorReporter: errorReporter}
+	typeChecker.scopes[0] = make(map[string]*FunctionStatement)
 
-	// first pass: define global functions
+	return &typeChecker
+}
+
+func TypeCheck(ast Program, errorReporter ErrorReporter) (err error) {
+	typeChecker := NewTypeChecker(errorReporter)
+
+	// define native functions
+	for name, fn := range NativeFunctions {
+		typeChecker.DefineFunction(name, fn.atype)
+	}
+
+	// define global functions
 	for _, stmt := range ast {
-		fnDecl, ok := stmt.(*FunctionStatement)
+		fn, ok := stmt.(*FunctionStatement)
 		if ok {
-			typeChecker.DefineFunction(fnDecl)
+			name := fn.name.String()
+			if !typeChecker.DefineFunction(name, fn.atype) {
+				typeChecker.Error(fn.name, fmt.Sprintf("cannot redefine '%s'.", name))
+			}
+			typeChecker.referenceGraph.AddUndefinedNode(fn)
+			typeChecker.scopes.Define(name, fn)
 		}
 	}
 

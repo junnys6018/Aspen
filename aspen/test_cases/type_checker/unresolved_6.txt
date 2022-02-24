@@ -1,0 +1,22 @@
+/*
+    20:4 `reference to unresolved function 'c'.
+
+    17:5 a refers to
+    14:9 b refers to
+    10:9 c`
+*/
+{
+    fn b() void {
+        c();
+    }
+
+    fn a() void {
+        b();
+    }
+
+    a();
+}
+
+fn c() void {
+
+}

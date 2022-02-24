@@ -1,0 +1,7 @@
+/*
+    4:1 reference to unresolved function 'foo'.
+*/
+foo();
+fn foo() void {
+
+}

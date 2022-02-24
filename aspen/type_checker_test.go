@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"unicode"
 )
@@ -44,23 +42,6 @@ func (tc *TypeCheckerTestCase) Run(t *testing.T) {
 	}
 }
 
-func ScanErrorMessage(line string, lineNumber *int, col *int, message *string) {
-	var end int
-
-	// skip leading space
-	for unicode.IsSpace(rune(line[end])) {
-		end++
-	}
-	// skip line:col part
-	for !unicode.IsSpace(rune(line[end])) {
-		end++
-	}
-
-	fmt.Sscanf(line, "%d:%d", lineNumber, col)
-
-	*message = line[end+1:]
-}
-
 func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
 	data, err := os.ReadFile(file)
 
@@ -89,19 +70,51 @@ func NewTypeCheckerTestCase(file string, t *testing.T) *TypeCheckerTestCase {
 	comment := tokens[0].value.(string)
 	var errors []ErrorData
 
-	scanner := bufio.NewScanner(strings.NewReader(comment))
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.TrimSpace(line) == "" {
-			continue
-		}
+	pos := 0
 
+	for pos < len(comment) {
 		var (
 			lineNumber, col int
 			message         string
 		)
 
-		ScanErrorMessage(line, &lineNumber, &col, &message)
+		// skip leading space
+		for unicode.IsSpace(rune(comment[pos])) {
+			pos++
+		}
+
+		fmt.Sscanf(comment[pos:], "%d:%d", &lineNumber, &col)
+
+		// skip line:col part
+		for !unicode.IsSpace(rune(comment[pos])) {
+			pos++
+		}
+
+		// skip leading space
+		for unicode.IsSpace(rune(comment[pos])) {
+			pos++
+		}
+
+		var terminator byte
+
+		if comment[pos] == '`' {
+			terminator = '`'
+			pos++
+		} else {
+			terminator = '\n'
+		}
+
+		end := pos
+		for comment[end] != terminator {
+			end++
+		}
+		message = comment[pos:end]
+		pos = end + 1
+
+		// consume newline
+		if terminator == '`' {
+			pos++
+		}
 
 		errors = append(errors, ErrorData{lineNumber, col, message})
 	}
