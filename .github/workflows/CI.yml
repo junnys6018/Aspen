@@ -73,3 +73,18 @@ jobs:
           name: aspen
           path: aspen/aspen.exe
           if-no-files-found: error
+
+  upload-examples:
+    name: upload-examples
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Upload examples
+        uses: actions/upload-artifact@v2
+        with:
+          name: aspen
+          path: examples/
+          if-no-files-found: error
