@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 type TokenType int
@@ -208,6 +207,10 @@ func IsLetter(r rune) bool {
 	return r == '_' || (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')
 }
 
+func IsDigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
 var KEYWORDS = map[string]TokenType{
 	"else":   TOKEN_ELSE,
 	"for":    TOKEN_FOR,
@@ -372,7 +375,7 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 		start := i - 1
 		isInteger := true
 
-		for !isAtEnd() && unicode.IsDigit(peek()) {
+		for !isAtEnd() && IsDigit(peek()) {
 			advance()
 			col++
 		}
@@ -380,7 +383,7 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 		if match('.') {
 			col++
 			isInteger = false
-			for !isAtEnd() && unicode.IsDigit(peek()) {
+			for !isAtEnd() && IsDigit(peek()) {
 				advance()
 				col++
 			}
@@ -408,7 +411,7 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 
 		start := i - 1
 
-		for !isAtEnd() && (IsLetter(peek()) || unicode.IsDigit(peek())) {
+		for !isAtEnd() && (IsLetter(peek()) || IsDigit(peek())) {
 			advance()
 			col++
 		}
@@ -503,7 +506,7 @@ func ScanTokens(source []rune, errorReporter ErrorReporter) (TokenStream, error)
 		case '"':
 			stringToken()
 		default:
-			if unicode.IsDigit(r) {
+			if IsDigit(r) {
 				numberToken()
 			} else if IsLetter(r) {
 				identifierToken()
