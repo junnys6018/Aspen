@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"time"
@@ -25,7 +26,12 @@ Options
     Parse the source code and print out the ast as an S-expression
 
     -t or --type-check
-    Run the type checker on the program but do not execute it`
+    Run the type checker on the program but do not execute it
+
+    --stdin
+    Read source code from stdin. Note that the code is not executed until an <eof>
+    is read, as such this mode is not intended to be used as a REPL. Instead it is intended
+    to be used to redirect output to aspen.`
 
 func OpenFile(path string) ([]rune, error) {
 	bytes, err := os.ReadFile(path)
@@ -186,10 +192,17 @@ func main() {
 	Initialize()
 
 	if len(os.Args) == 2 {
-		path := os.Args[1]
-
-		err := ExecuteFile(path)
-		Check(err)
+		if os.Args[1] == "--stdin" || os.Args[1] == "-" /* follow unix's convention that '-' represents stdin */ {
+			bytes, err := ioutil.ReadAll(os.Stdin)
+			Check(err)
+			source := []rune(string(bytes))
+			err = ExecuteSource(source)
+			Check(err)
+		} else {
+			path := os.Args[1]
+			err := ExecuteFile(path)
+			Check(err)
+		}
 	} else if len(os.Args) == 3 {
 		flag := os.Args[1]
 
