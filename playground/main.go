@@ -84,7 +84,10 @@ func run(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Allow CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	io.WriteString(w, output)
+	w.WriteHeader(http.StatusCreated)
 }
 
 var aspenPath string
