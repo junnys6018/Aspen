@@ -1,6 +1,6 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import TextEditor from '../components/text-editor';
+import CodeEditor from '../components/code-editor';
 
 const Home: NextPage = () => {
     return (
@@ -9,8 +9,8 @@ const Home: NextPage = () => {
                 <title>Aspen</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="relative" style={{ width: '800px', height: '500px' }}>
-                <TextEditor />
+            <div className="relative mx-auto mt-12" style={{ width: '800px' }}>
+                <CodeEditor />
             </div>
         </div>
     );
