@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var TimeoutError = errors.New("timed out running program")
+var TimeoutError = errors.New("Timed out running program.")
 var TimeoutDuration time.Duration
 
 func execute(source []byte) (string, error) {
@@ -63,6 +63,9 @@ func run(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Allow CORS
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	body, err := ioutil.ReadAll(req.Body)
 
 	if err != nil {
@@ -84,8 +87,6 @@ func run(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// Allow CORS
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	io.WriteString(w, output)
 	w.WriteHeader(http.StatusCreated)
 }
