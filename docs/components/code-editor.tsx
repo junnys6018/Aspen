@@ -10,6 +10,7 @@ const CodeEditor: React.FC = () => {
     const [sourceCode, setSourceCode] = useState(examples[0].code);
     const [output, setOutput] = useState('');
     const lines = useRef<HTMLDivElement>(null);
+    const textarea = useRef<HTMLTextAreaElement>(null);
 
     const onRun = useCallback(() => {
         setOutput('Waiting for remote server...');
@@ -37,7 +38,7 @@ const CodeEditor: React.FC = () => {
                         Examples
                         <FaChevronDown className="ml-2" />
                     </Menu.Button>
-                    <Menu.Items className="absolute right-0 mt-2 w-56 rounded bg-white py-3 shadow-md">
+                    <Menu.Items className="absolute right-0 mt-2 w-56 rounded bg-white py-3 shadow-[0_0_6px_2px_rgba(0,0,0,0.1)]">
                         {examples.map(example => (
                             <Menu.Item key={example.name}>
                                 {({ active }) => (
@@ -63,12 +64,31 @@ const CodeEditor: React.FC = () => {
                         ))}
                     </div>
                     <textarea
+                        ref={textarea}
                         className="flex-grow resize-none bg-yellow-50 text-slate-900 outline-none"
                         value={sourceCode}
                         onChange={e => setSourceCode(e.target.value)}
                         onScroll={e => {
                             if (lines.current)
                                 lines.current.style.marginTop = `-${(e.target as HTMLElement).scrollTop}px`;
+                        }}
+                        onKeyDown={e => {
+                            // see https://stackoverflow.com/questions/40331780/reactjs-handle-tab-character-in-textarea
+                            if (e.key === 'Tab' && !e.shiftKey) {
+                                e.preventDefault();
+                                const value = textarea.current!.value;
+                                const selectionStart = textarea.current!.selectionStart;
+                                const selectionEnd = textarea.current!.selectionEnd;
+
+                                const newText =
+                                    value.substring(0, selectionStart) + '    ' + value.substring(selectionEnd);
+                                textarea.current!.value = newText; // need to set this otherwise changing the selection wont work
+
+                                textarea.current!.selectionStart = selectionEnd + 4 - (selectionEnd - selectionStart);
+                                textarea.current!.selectionEnd = selectionEnd + 4 - (selectionEnd - selectionStart);
+
+                                setSourceCode(newText);
+                            }
                         }}
                         autoCapitalize="off"
                         autoCorrect="off"
