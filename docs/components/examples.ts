@@ -1,7 +1,8 @@
 const examples = [
     {
         name: 'Hello, World!',
-        code: 'print "Hello, 世界!";',
+        code: `print "Hello, 世界!";
+`,
     },
     {
         name: 'Recursion',

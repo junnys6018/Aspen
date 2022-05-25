@@ -26,9 +26,9 @@ const CodeEditor: React.FC = () => {
     return (
         <Fragment>
             <div className="mb-4 flex flex-row items-center">
-                <h2 className="mr-auto text-2xl font-bold">The aspen playground</h2>
+                <h2 className="mr-auto text-2xl font-medium">The Aspen Playground</h2>
                 <button
-                    className="mr-4 rounded-md bg-green-400 px-3 py-1 font-medium hover:bg-green-500"
+                    className="mr-4 rounded-md bg-blue-500 px-3 py-1 font-medium text-white hover:bg-blue-600"
                     onClick={onRun}
                 >
                     Run
