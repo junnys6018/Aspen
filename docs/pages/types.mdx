@@ -5,11 +5,13 @@ import DocsLayout from '../components/docs-layout';
 Aspen is statically typed, variables are declared like so:
 
 ```
-let n i64 = 0;
+let n i64 = 42;
 let foo string = "bar";
 ```
 
-There is no type inference in Aspen. Functions are first class objects in Aspen, a variable with a function type can be declared like so:
+There is no type inference in Aspen, nor is there default initialization. Every variable declared must be initialized.
+
+Functions are first class objects in Aspen, a variable with a function type can be declared like so:
 
 ```
 let func fn(i64, i64)string;
@@ -28,23 +30,23 @@ Aspen has the following built in datatypes
     </tr>
     <tr>
         <td>`i64`</td>
-        <td>64 bit signed integer</td>
+        <td>64 bit signed integer.</td>
     </tr>
     <tr>
         <td>`u64`</td>
-        <td>64 bit unsigned integer</td>
+        <td>64 bit unsigned integer.</td>
     </tr>
     <tr>
         <td>`bool`</td>
-        <td>Boolean</td>
+        <td>Boolean value.</td>
     </tr>
     <tr>
         <td>`string`</td>
-        <td>A UTF-32 encoded string</td>
+        <td>A UTF-32 encoded string.</td>
     </tr>
     <tr>
         <td>`double`</td>
-        <td>64 bit floating point number</td>
+        <td>64 bit floating point number.</td>
     </tr>
 </table>
 
