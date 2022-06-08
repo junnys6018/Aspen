@@ -26,19 +26,36 @@ const table: Table = [
         ],
     },
     {
-        header: 'Basics',
+        header: 'Guides',
         items: [
             {
-                name: 'Installation',
-                slug: '/d',
+                name: 'Basics',
+                slug: '/basics',
             },
             {
-                name: 'GitHub',
-                slug: '/e',
+                name: 'Types',
+                slug: '/types',
             },
             {
-                name: 'Patterns',
-                slug: '/f',
+                name: 'Control Flow',
+                slug: '/control-flow',
+            },
+            {
+                name: 'Functions',
+                slug: '/functions',
+            },
+        ],
+    },
+    {
+        header: 'Reference',
+        items: [
+            {
+                name: 'Aspen CLI',
+                slug: '/cli',
+            },
+            {
+                name: 'Grammar',
+                slug: '/grammar',
             },
         ],
     },

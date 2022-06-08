@@ -1,0 +1,78 @@
+import DocsLayout from '../components/docs-layout';
+
+## Variables
+
+Aspen is statically typed, variables are declared like so:
+
+```
+let n i64 = 0;
+let foo string = "bar";
+```
+
+There is no type inference in Aspen. Functions are first class objects in Aspen, a variable with a function type can be declared like so:
+
+```
+let func fn(i64, i64)string;
+```
+
+Here `func` is a variable of type `fn(i64, i64)string`, i.e. a function that takes 2 integer parameters and returns a string.
+
+## Primitive Types
+
+Aspen has the following built in datatypes
+
+<table>
+    <tr>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>`i64`</td>
+        <td>64 bit signed integer</td>
+    </tr>
+    <tr>
+        <td>`u64`</td>
+        <td>64 bit unsigned integer</td>
+    </tr>
+    <tr>
+        <td>`bool`</td>
+        <td>Boolean</td>
+    </tr>
+    <tr>
+        <td>`string`</td>
+        <td>A UTF-32 encoded string</td>
+    </tr>
+    <tr>
+        <td>`double`</td>
+        <td>64 bit floating point number</td>
+    </tr>
+</table>
+
+## Type Casting
+
+Type casting can be done with function call syntax.
+
+```
+print i64(1.5);  // convert a double to i64
+print double(3); // convert a i64 to double
+```
+
+Currently only type casting between numeric types (`i64`, `u64`, `double`) are allowed. Signed integers and floating point numbers can be converted to and from strings with the built in functions:
+
+```
+print itoa(3);      // i64 -> string
+print ftoa(1.5);    // double -> string
+print atoi("9");    // string -> i64
+print atof("3.14"); // string -> double
+```
+
+0 is returned if a string cannot be converted to a numeric type. These string conversion functions are useful for formatting output.
+
+```
+let firstName string = "John";
+let lastName string = "Doe";
+let age i64 = 23;
+print firstName + " " + lastName + " is " + itoa(age) + " years old.";
+```
+
+export default ({ children }) => <DocsLayout>{children}</DocsLayout>;

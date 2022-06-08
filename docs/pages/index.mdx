@@ -19,30 +19,14 @@ fn square(n i64) i64 {
 list(square, 10);
 ```
 
+## Why?
+
+Aspen was created purely for educational purposes. It is not a well designed language nor was it intended it be. Many features expected from a programming language such as type inference and arrays are missing. Instead Aspen was created to learn about how to write a lexer, parser, type checker and interpreter. The features that exist in Aspen are there purely because I wanted to learn how they are implemented.
+
+In fact this website was created as an exercise in web development.
+
 ## Getting Started
 
-Aspen can be downloaded locally on [GitHub](https://github.com/junnys6018/Aspen), or you can try out our online {<Link href="/playground"><a>playground</a></Link>}
-to start writing Aspen programs in the browser.
-
-## CLI Interface
-```
-useage: aspen [<options>] <path>
-
-Options
-    <path>
-    The path to the aspen source file to execute
-
-    -i or --interpret
-    Execute the program using the tree walk implementation
-
-    -l or --lex
-    Do lexical analysis on the source code and print out the tokens scanned
-
-    -p or --parse
-    Parse the source code and print out the ast as an S-expression
-
-    -t or --type-check
-    Run the type checker on the program but do not execute it
-```
+Aspen can be downloaded locally on [GitHub](https://github.com/junnys6018/Aspen), or you can try out our online <Link href="/playground"><a>playground</a></Link> to start writing Aspen programs in the browser.
 
 export default ({ children }) => <DocsLayout>{children}</DocsLayout>;

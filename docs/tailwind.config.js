@@ -8,13 +8,13 @@ module.exports = {
             mono: defaultTheme.fontFamily.mono,
         },
         container: {
-            // padding: {
-            //     DEFAULT: '1rem',
-            //     sm: '2rem',
-            //     lg: '6rem',
-            //     xl: '12rem',
-            //     '2xl': '24rem',
-            // },
+            padding: {
+                DEFAULT: '1rem',
+                sm: '2rem',
+                lg: '6rem',
+                xl: '12rem',
+                '2xl': '16rem',
+            },
             center: true,
         },
         extend: {
