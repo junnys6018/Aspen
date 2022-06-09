@@ -57,7 +57,7 @@ const CodeEditor: React.FC = () => {
                 </Menu>
             </div>
             <div className="divide-y divide-neutral-200 border border-neutral-200">
-                <div className="flex h-160 w-full flex-row overflow-hidden font-mono">
+                <div className="flex h-120 w-full flex-row overflow-hidden font-mono">
                     <div ref={lines} className="w-10 bg-yellow-50 pr-2 text-right text-slate-400">
                         {[...Array(countLines(sourceCode))].map((x, i) => (
                             <div key={i}>{i + 1}</div>
