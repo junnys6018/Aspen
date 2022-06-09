@@ -1,5 +1,101 @@
 import DocsLayout from '../components/docs-layout';
 
-todo
+# Grammar
+
+For those interested, here is the grammar for Aspen.
+
+## Lexical Grammar
+
+The first stage in executing an Aspen program is called [lexing](https://en.wikipedia.org/wiki/Lexical_analysis). In this stage, the linear sequence of _characters_ in an Aspen program are converted into a linear sequence of _tokens_. Aspen's lexical grammar is [regular](https://en.wikipedia.org/wiki/Regular_grammar). The set of allowable tokens is specified in grammar below.
+
+```
+NUMBER                  → DIGIT+ ( "." DIGIT+ )?
+STRING                  → "\"" <any char except "\"">* "\""
+IDENTIFIER              → ALPHA ( ALPHA | DIGIT )*
+ALPHA                   → "a" ... "z" | "A" ... "Z" | "_"
+DIGIT                   → "0" ... "9"
+COMMENT                 → SINGLE_LINE_COMMENT | MULTI_LINE_COMMENT
+SINGLE_LINE_COMMENT     → "//" <any char except "\n">* ( "\n" )?
+MULTI_LINE_COMMENT      → "/*" <any char>* "*/"
+```
+
+## Syntax Grammar
+
+While lexing converts a sequence of characters into a sequence of tokens, parsing converts a sequence of tokens into a tree (a forest to be more precise). Aspen's syntactic grammar is [context free](https://en.wikipedia.org/wiki/Context-free_grammar). The top level grammar element in an Aspen program is simply a sequence of declarations.
+
+```
+program                 → declaration* EOF
+```
+
+### Declarations
+
+Declarations bring new identifiers into existence. There are two types of declarations in Aspen, function declarations and variable declarations.
+
+```
+declaration             → varDecl | fnDecl | statement
+
+varDecl                 → "let" IDENTIFIER type ( "=" expression )? ";"
+fnDecl                  → "fn" IDENTIFIER "(" namedParameters? ")" ( type | "void" ) block
+
+namedParameters         → IDENTIFIER type ( "," IDENTIFIER type )*
+```
+
+### Statements
+
+Aspen makes a distinction between declarations and statements. Statements create side effects and declarations create new identifiers. The creation of an identifier is considered to be a side effect, therefore all declarations are statements but not all statements are declarations. The `print` statement for example creates a side effect in the way of printing output to the console.
+
+```
+statement               → exprStmt
+                        | printStmt
+                        | block
+                        | ifStmt
+                        | whileStmt
+                        | forStmt
+                        | returnStmt
+
+exprStmt                → expression ";"
+printStmt               → "print" expression ";"
+block                   → "{" declaration* "}"
+ifStmt                  → "if" "(" expression ")" block ( "else" "if" block )* ( "else" block )?
+whileStmt               → "while" "(" expression ")" block
+forStmt                 → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression?  ")" block
+returnStmt              → "return" expression? ";"
+```
+
+### Expressions
+
+Expressions produce values. We separate different types of expressions in new rules to make the precedence of operators explicit.
+
+```
+expression              → assignment
+
+assignment              → IDENTIFIER "=" assignment | logicOr
+
+logicOr                 → logicAnd ( "||" logicAnd )*
+logicAnd                → equality ( "&&" equality )*
+equality                → comparison ( ( "!=" | "==" ) comparison )*
+comparison              → bitOr ( ( ">" | ">=" | "<" | "<=" ) bitOr )*
+bitOr                   → bitXor ( "|" bitXor )*
+bitXor                  → bitAnd ( "^" bitAnd )*
+bitAnd                  → term ( "&" term )*
+term                    → factor ( ( "-" | "+" ) factor )*
+factor                  → unary ( ( "/" | "*" | "%" ) unary )*
+
+unary                   → ( "!" | "-" ) unary | call
+call                    → primary ( "(" arguments? ")" )*
+primary                 → "true" | "false" | "nil" | FLOAT | INT | STRING | IDENTIFIER | "(" expression ")" | type "(" expression ")"
+
+arguments               → expression ( "," expression )*
+```
+
+### Types
+
+```
+type                    → function
+function                → "fn(" anonymousParameters? ")" ( type | "void" ) | primitive
+primitive               → "i64" | "u64" | "bool" | "string" | "double" | "(" type ")"
+
+anonymousParameters     → type ( "," type )*
+```
 
 export default ({ children }) => <DocsLayout>{children}</DocsLayout>;

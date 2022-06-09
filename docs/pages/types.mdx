@@ -1,5 +1,7 @@
 import DocsLayout from '../components/docs-layout';
 
+# Types
+
 ## Variables
 
 Aspen is statically typed, variables are declared like so:
@@ -9,9 +11,7 @@ let n i64 = 42;
 let foo string = "bar";
 ```
 
-There is no type inference in Aspen, nor is there default initialization. Every variable declared must be initialized.
-
-Functions are first class objects in Aspen, a variable with a function type can be declared like so:
+There is no type inference in Aspen. Functions are first class objects in Aspen, a variable with a function type can be declared like so:
 
 ```
 let func fn(i64, i64)string;
@@ -24,7 +24,7 @@ Here `func` is a variable of type `fn(i64, i64)string`, i.e. a function that tak
 Aspen has the following built in datatypes
 
 | Type     | Description                   |
-|----------|-------------------------------|
+| -------- | ----------------------------- |
 | `i64`    | 64 bit signed integer.        |
 | `u64`    | 64 bit unsigned integer.      |
 | `bool`   | Boolean value.                |
