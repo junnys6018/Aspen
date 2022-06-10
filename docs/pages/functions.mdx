@@ -1,5 +1,78 @@
 import DocsLayout from '../components/docs-layout';
 
-todo
+# Functions
+
+Functions are defined with the `fn` keyword. The keyword `void` indicates that the function does not return a value.
+
+```
+fn doSomething() void {
+    // code...
+}
+```
+
+Functions may accept parameters and return values.
+
+```
+fn add(a i64, b i64) i64 {
+    return a + b;
+}
+```
+
+## First Class Functions
+
+Functions are first class objects in Aspen, a variable with a function type can be declared like so:
+
+```
+let func fn(i64, i64)string;
+```
+
+Here `func` is a variable of type `fn(i64, i64)string`, i.e. a function that takes 2 integer parameters and returns a string. Variables with a function type must be initialized, so the code example above is actually illegal. Here is a complete example.
+
+```
+fn add(a i64, b i64) i64 {
+    return a + b;
+}
+
+fn sub(a i64, b i64) i64 {
+    return a - b;
+}
+
+fn mul(a i64, b i64) i64 {
+    return a * b;
+}
+
+fn div(a i64, b i64) i64 {
+    return a * b;
+}
+
+fn calc(op fn(i64, i64)i64, a i64, b i64) void {
+    print op(a, b);
+}
+
+calc(add, 5, 7);
+calc(sub, 4, 1);
+calc(mul, 3, 6);
+calc(div, 8, 2);
+```
+
+## Closures
+
+Functions defined in a local scope will capture the variables visible from that scope.
+
+```
+fn makeCounter() fn()void {
+    let i i64 = 0;
+    fn count() void {
+        i = i + 1;
+        print "called " + itoa(i) + " times.";
+    }
+    return count;
+}
+
+let counter fn()void = makeCounter();
+counter();
+counter();
+counter();
+```
 
 export default ({ children }) => <DocsLayout>{children}</DocsLayout>;

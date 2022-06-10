@@ -1,4 +1,5 @@
 import DocsLayout from '../components/docs-layout';
+import Alert from '../components/alert';
 
 # Basics
 
@@ -7,7 +8,7 @@ import DocsLayout from '../components/docs-layout';
 Aspen uses C style comments.
 
 ```
-// This is a line comment
+// this is a line comment
 
 /*
     this block comment
@@ -17,14 +18,90 @@ Aspen uses C style comments.
 
 ## Printing
 
-All output in Aspen is done through the `print` statement. There is no way to read user input in Aspen.
+All output in Aspen is done through the `print` statement.
 
 ```
 print "Hello, world!";
 ```
 
+<Alert level="info">There is no way to read input in an Aspen program.</Alert>
+
+## Variables
+
+Variables are declared with the `let` keyword.
+
+```
+let n i64;
+let foo string;
+```
+
+Aspen is statically typed, every variable must be annotated with a type. In the example above, `n` is a variable of type `i64`, a 64 bit integer and `foo` has type `string`.
+
+There is no type inference in Aspen, every variable must be declared with a type.
+
+<Alert level="error">
+
+    ### All variables must be declared with a type
+
+    ```
+    let name = "Arun Muthu";
+    ```
+
+</Alert>
+
+<Alert level="success">
+
+    ### `name` has been annotated with the type `string`
+
+    ```
+    let name string = "Arun Muthu";
+    ```
+
+</Alert>
+
+## Reserved Keywords
+
+Here is the list of keywords reserved by Aspen.
+
+```
+else for fn void if print return true false let while i64 u64 bool string double
+```
+
+## Blocks
+
+Similar to how parenthesis group multiple expressions into one big expression, a block groups multiple statements into one big statement. A block creates a _local scope_, variables declared inside a block will only be visible inside the block.
+
+```
+{
+    let greeting string = "こんにちは";
+    print greeting;
+}
+let welcome string = greeting + " Jordan."; // error, greeting is out of scope
+```
+
+Blocks always appear after an `if`, `while` or `for` statement.
+
+```
+if (12*12 > 100) {
+    print "12*12 is greater than 100.";
+}
+```
+
 ## Operators
 
-todo
+| Precedence | Operator             | Description                        | Associates |
+| ---------- | -------------------- | ---------------------------------- | ---------- |
+| 1          | `fn()` `()` `type()` | Function call, Grouping, Type cast | Left       |
+| 2          | `!` `-`              | Not, Negation                      | Right      |
+| 3          | `/` `*` `%`          | Divide, Multiply, Modulus          | Left       |
+| 4          | `+` `-`              | Add, Subtract                      | Left       |
+| 5          | `&`                  | Bitwise and                        | Left       |
+| 6          | `^`                  | Bitwise xor                        | Left       |
+| 7          | `\|`                 | Bitwise or                         | Left       |
+| 8          | `>` `>=` `<` `<=`    | Comparison                         | Left       |
+| 9          | `==` `!=`            | Equals, Not equal                  | Left       |
+| 10         | `&&`                 | Logic and                          | Left       |
+| 11         | `\|\|`               | Logic or                           | Left       |
+| 12         | `=`                  | Assignment                         | Right      |
 
 export default ({ children }) => <DocsLayout>{children}</DocsLayout>;

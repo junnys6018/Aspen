@@ -9,6 +9,12 @@ For those interested, here is the grammar for Aspen.
 The first stage in executing an Aspen program is called [lexing](https://en.wikipedia.org/wiki/Lexical_analysis). In this stage, the linear sequence of _characters_ in an Aspen program are converted into a linear sequence of _tokens_. Aspen's lexical grammar is [regular](https://en.wikipedia.org/wiki/Regular_grammar). The set of allowable tokens is specified in the grammar below.
 
 ```
+TOKEN                   → NUMBER
+                        | STRING
+                        | IDENTIFIER
+                        | COMMENT
+                        | OTHER
+
 NUMBER                  → DIGIT+ ( "." DIGIT+ )?
 STRING                  → "\"" <any char except "\"">* "\""
 IDENTIFIER              → ALPHA ( ALPHA | DIGIT )*
@@ -17,6 +23,9 @@ DIGIT                   → "0" ... "9"
 COMMENT                 → SINGLE_LINE_COMMENT | MULTI_LINE_COMMENT
 SINGLE_LINE_COMMENT     → "//" <any char except "\n">* ( "\n" )?
 MULTI_LINE_COMMENT      → "/*" <any char>* "*/"
+OTHER                   →  "(" | ")" | "{" | "}" | "," | "-" | "+" | ";"
+                        | "/" | "*" | "^" | "%" | "!" | "!=" | "=" | "=="
+                        | ">" | ">=" | "<" | "<=" | "&" | "&&" | "|" | "||"
 ```
 
 ## Syntax Grammar
@@ -64,7 +73,7 @@ returnStmt              → "return" expression? ";"
 
 ### Expressions
 
-Expressions produce values. We separate different types of expressions in new rules to make the precedence of operators explicit.
+Expressions produce values. We separate different types of expressions into new rules to make the precedence of operators explicit.
 
 ```
 expression              → assignment
