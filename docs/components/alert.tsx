@@ -19,7 +19,7 @@ const Alert: React.FC<{
     };
 
     return (
-        <div className={`flew-row not-prose flex gap-2 rounded-md p-3 ${classNames[level]}`}>
+        <div className={`flew-row not-prose my-5 flex gap-2 rounded-md p-3 ${classNames[level]}`}>
             {icons[level]}
             <div>{children}</div>
         </div>

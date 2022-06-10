@@ -97,7 +97,9 @@ const CodeEditor: React.FC = () => {
                         wrap="off"
                     ></textarea>
                 </div>
-                <div className="min-h-[15rem] whitespace-pre bg-neutral-100 p-4 font-mono">{output}</div>
+                <div className="min-h-[15rem] overflow-x-auto whitespace-pre bg-neutral-100 p-4 font-mono">
+                    {output}
+                </div>
             </div>
         </Fragment>
     );
