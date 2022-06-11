@@ -4,7 +4,7 @@ import DocsLayout from '../components/docs-layout';
 
 ## Primitive Types
 
-Aspen has the following built in datatypes
+Aspen has the following built in datatypes:
 
 | Type     | Description                   |
 | -------- | ----------------------------- |
@@ -23,7 +23,7 @@ print i64(1.5);  // convert a double to i64
 print double(3); // convert a i64 to double
 ```
 
-Currently only type casting between numeric types (`i64`, `u64`, `double`) are allowed. Signed integers and floating point numbers can be converted to and from strings with the built in functions:
+Only type casting between numeric types (`i64`, `u64`, `double`) are allowed. Signed integers and floating point numbers can be converted to and from strings with the built in functions:
 
 ```
 print itoa(3);      // i64    -> string
@@ -32,7 +32,7 @@ print atoi("9");    // string -> i64
 print atof("3.14"); // string -> double
 ```
 
-0 is returned if a string cannot be converted to a numeric type. These string conversion functions are useful for formatting output.
+These string conversion functions are useful for formatting output.
 
 ```
 let name string = "Chris";

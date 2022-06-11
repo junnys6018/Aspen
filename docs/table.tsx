@@ -44,6 +44,10 @@ const table: Table = [
                 name: 'Functions',
                 slug: '/functions',
             },
+            {
+                name: 'Built In Functions',
+                slug: '/built-in-functions',
+            },
         ],
     },
     {

@@ -30,7 +30,7 @@ OTHER                   →  "(" | ")" | "{" | "}" | "," | "-" | "+" | ";"
 
 ## Syntax Grammar
 
-While lexing converts a sequence of characters into a sequence of tokens, parsing converts a sequence of tokens into a tree (a forest to be more precise). Aspen's syntactic grammar is [context free](https://en.wikipedia.org/wiki/Context-free_grammar). The top level grammar element in an Aspen program is simply a sequence of declarations.
+While lexing converts a sequence of characters into a sequence of tokens, parsing converts a sequence of tokens into a tree (a forest to be more precise). Aspen's syntactic grammar is [context free](https://en.wikipedia.org/wiki/Context-free_grammar). The top level grammar element in an Aspen program is simply a sequence of declarations (or statements).
 
 ```
 program                 → declaration* EOF
