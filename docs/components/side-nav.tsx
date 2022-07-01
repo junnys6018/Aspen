@@ -26,7 +26,12 @@ const SideNav: React.FC<{ table: Table }> = ({ table }) => {
                                             <a className="block">{item.name}</a>
                                         </Link>
                                     ) : (
-                                        <a href={item.href!} target="_blank" rel="noopener noreferrer">
+                                        <a
+                                            href={item.href!}
+                                            className="block"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
                                             {item.name}
                                         </a>
                                     )}

@@ -14,7 +14,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </Head>
             <Header />
             <main className="container relative mx-auto my-8">
-                <div className="flex flex-col md:flex-row">
+                <div className="flex flex-col md:flex-row gap-8 md:gap-0">
                     <SideNav table={table} />
                     <div className="min-w-0 flex-grow">{children}</div>
                 </div>
